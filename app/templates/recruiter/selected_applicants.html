@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% import "macros.html" as m with context %}
+{% block title %}Selected applicants — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Selected applicants</h1>
+      <p class="page-sub">Students you've selected across all opportunities. Send offer letters from the applicants page.</p>
+    </div>
+    {% if applications %}
+      <div class="flex" style="gap:8px;">
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('recruiters.export_selected_applicants_csv') }}">📄 CSV</a>
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('recruiters.export_selected_applicants_pdf') }}">📄 PDF</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    {# ── Filters ────────────────────────────────────────────────────── #}
+    <div style="padding:14px 22px; border-bottom:1px solid var(--line-soft); display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+      <span class="small muted" style="font-weight:600;">Filters:</span>
+      <form method="get" id="filterForm" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <select class="input" name="opportunity" id="filterOpp" style="width:auto; padding:5px 10px; font-size:13px;">
+          <option value="">All opportunities</option>
+          {% for opp in opportunities %}
+            <option value="{{ opp.id }}" {{ 'selected' if filters.opportunity == opp.id }}>{{ opp.title }}</option>
+          {% endfor %}
+        </select>
+        <select class="input" name="college" id="filterCollege" style="width:auto; padding:5px 10px; font-size:13px;">
+          <option value="">All colleges</option>
+          {% for c in colleges %}
+            <option value="{{ c.id }}" {{ 'selected' if filters.college == c.id }}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+        <select class="input" name="offer" id="filterOffer" style="width:auto; padding:5px 10px; font-size:13px;">
+          <option value="">All offer statuses</option>
+          <option value="pending" {{ 'selected' if filters.offer == 'pending' }}>Offer pending</option>
+          <option value="sent" {{ 'selected' if filters.offer == 'sent' }}>Offer sent</option>
+        </select>
+        <button type="submit" class="btn btn-ghost btn-sm">Apply</button>
+        {% if filters.opportunity or filters.college or filters.offer %}
+          <a class="link-btn small" href="{{ url_for('recruiters.selected_applicants_page') }}">Clear filters</a>
+        {% endif %}
+      </form>
+    </div>
+
+    {% if applications %}
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Opportunity</th>
+              <th>College</th>
+              <th>Department</th>
+              <th>Batch</th>
+              <th>Selected on</th>
+              <th>Offer</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for app in applications %}
+              <tr>
+                <td>
+                  <div class="flex" style="gap:10px; align-items:center;">
+                    <span class="avatar" style="width:36px; height:36px; font-size:14px;">{{ app.student.full_name[:1] | upper }}</span>
+                    <div>
+                      <div class="row-title">{{ app.student.full_name }}</div>
+                      <div class="row-sub">{{ app.student.user.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="row-title">{{ app.opportunity.title }}</div>
+                  <div class="row-sub">{{ 'Internship' if app.opportunity.type == 'INTERNSHIP' else 'Full-time' }} · {{ app.opportunity.location or '—' }}</div>
+                </td>
+                <td class="small">{{ app.student.college.name if app.student.college else '—' }}</td>
+                <td class="small">{{ app.student.department or '—' }}</td>
+                <td class="small">{{ app.student.graduation_year or '—' }}</td>
+                <td class="small">{{ app.updated_at | date }}</td>
+                <td>
+                  {% if app.offer_letter and app.offer_letter.sent_at %}
+                    <span class="chip" style="background:var(--success-tint); color:var(--success);">Sent</span>
+                  {% else %}
+                    <span class="chip chip-outline">Pending</span>
+                  {% endif %}
+                </td>
+                <td class="text-right">
+                  <a class="link-btn small" href="{{ url_for('recruiters.applicants_page', opportunity_id=app.opportunity_id, status='SELECTED') }}">View applicants</a>
+                  {% if not (app.offer_letter and app.offer_letter.sent_at) %}
+                    · <a class="link-btn small" style="color:var(--success);" href="{{ url_for('recruiters.applicants_page', opportunity_id=app.opportunity_id, status='SELECTED') }}">Send offer</a>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {{ m.pagination(pagination) }}
+    {% else %}
+      <div class="empty-state">
+        <div class="es-icon">🏆</div>
+        <h3>No selected applicants yet</h3>
+        <p>When you mark applicants as "Selected" from the applicants page, they'll appear here.</p>
+        <a class="btn btn-primary btn-sm" href="{{ url_for('recruiters.opportunities_page') }}">View opportunities</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% import "macros.html" as m with context %}
+{% block title %}Student dashboard — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Hey, {{ student.full_name.split()[0] }} 👋</h1>
+      <p class="page-sub">Here's what's happening with your placements today.</p>
+    </div>
+    <a class="btn btn-primary" href="{{ url_for('students.opportunities_page') }}">Browse opportunities</a>
+  </div>
+
+  {% if not student.has_resume() %}
+    <div class="alert alert-warning mb-3">
+      ⚠️ You haven't uploaded a resume yet — you'll need one to apply. <a href="{{ url_for('students.profile_page') }}#resume">Upload now</a>
+    </div>
+  {% endif %}
+
+  <div class="grid grid-3 mb-3">
+    <div class="card card-pad">
+      <div class="flex-between mb-2">
+        <span class="small" style="font-weight:600; color:var(--ink-2);">Profile completeness</span>
+        <strong style="color:var(--primary);">{{ student.completeness }}%</strong>
+      </div>
+      <div class="progress"><i style="width: {{ student.completeness }}%"></i></div>
+      <p class="small muted mt-2">{{ 'Perfect — your profile is ready for applications 🎉' if student.completeness == 100 else 'Fill in the rest of your profile to stand out to recruiters.' }}</p>
+      <a class="link-btn small mt-1" href="{{ url_for('students.profile_page') }}">Complete profile →</a>
+    </div>
+    {{ m.stat_card(my_applications|length if my_applications else 0, 'Applications sent', '📝', 'stat-ic-blue') }}
+    {{ m.stat_card(upcoming_interviews|length, 'Upcoming interviews', '🎤', 'stat-ic-cyan') }}
+  </div>
+
+  <div class="grid grid-2" style="grid-template-columns: 1.4fr 1fr;">
+    <div class="card">
+      <div class="card-header"><h3>My recent applications</h3><a class="link-btn small" href="{{ url_for('students.applications_page') }}">View all</a></div>
+      {% if my_applications %}
+        <div class="table-wrap">
+          <table class="table">
+            <tbody>
+              {% for app in my_applications %}
+                <tr>
+                  <td>
+                    <div class="row-title">{{ app.opportunity.title }}</div>
+                    <div class="row-sub">{{ app.opportunity.company_name }} · {{ app.applied_at | date }}</div>
+                  </td>
+                  <td>{{ m.badge(app.status) }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-state"><div class="es-icon">📝</div><h3>No applications yet</h3><p>Find an opportunity that fits you and hit apply.</p><a class="btn btn-secondary btn-sm" href="{{ url_for('students.opportunities_page') }}">Explore opportunities</a></div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Upcoming interviews</h3><a class="link-btn small" href="{{ url_for('students.interviews_page') }}">View all</a></div>
+      <div class="card-body" style="display:flex; flex-direction:column; gap:14px;">
+        {% if upcoming_interviews %}
+          {% for iv in upcoming_interviews %}
+            <div style="display:flex; gap:12px; align-items:center; padding:12px; border:1px solid var(--line-soft); border-radius:12px;">
+              <div style="width:44px; height:44px; border-radius:12px; background:var(--cyan-tint); display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--cyan); flex-shrink:0; font-size:13px; text-align:center; line-height:1.1;">{{ iv.scheduled_date.strftime('%d') }}<br><span style="font-size:10px;">{{ iv.scheduled_date.strftime('%b') }}</span></div>
+              <div>
+                <div style="font-weight:600; color:var(--ink); font-size:13.5px;">{{ iv.application.opportunity.title }}</div>
+                <div class="small muted">{{ iv.application.opportunity.company_name }} · {{ iv.scheduled_time | time }} · {{ iv.mode | title }}</div>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state" style="padding:24px;"><div class="es-icon">🎤</div><h3>No upcoming interviews</h3><p>When recruiters shortlist you, interviews appear here.</p></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if announcements %}
+    <div class="card mb-3">
+      <div class="card-header"><h3>📢 Announcements</h3></div>
+      <div class="card-body" style="display:flex; flex-direction:column; gap:14px;">
+        {% for ann in announcements %}
+          <div style="padding:14px 18px; border:1px solid var(--line-soft); border-radius:12px;">
+            <div class="flex-between">
+              <strong style="color:var(--ink); font-size:14px;">{{ ann.title }}</strong>
+              <span class="small muted">{{ ann.created_at | datetime }}</span>
+            </div>
+            <p class="small mt-1" style="white-space:pre-line; color:var(--ink-2);">{{ ann.body }}</p>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="mt-4">
+    <div class="flex-between mb-2">
+      <h3 style="font-size:17px;">Fresh opportunities</h3>
+      <a class="link-btn" href="{{ url_for('students.opportunities_page') }}">See all →</a>
+    </div>
+    <div class="grid grid-3">
+      {% for opp in recent_opportunities %}
+        {{ m.opp_card(opp) }}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

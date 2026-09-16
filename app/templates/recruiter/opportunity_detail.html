@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% import "macros.html" as m with context %}
+{% block title %}{{ opportunity.title }} — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <a class="link-btn small" href="{{ url_for('recruiters.opportunities_page') }}">← My opportunities</a>
+
+  <div class="page-header mt-1">
+    <div class="flex" style="gap:14px; align-items:center; flex-wrap:wrap;">
+      <div class="opp-logo" style="width:50px; height:50px;">{{ opportunity.company_name[:1] | upper }}</div>
+      <div>
+        <h1 class="page-title">{{ opportunity.title }}</h1>
+        <p class="page-sub">{{ 'Internship' if opportunity.type == 'INTERNSHIP' else 'Full-time' }} · {{ opportunity.location or '—' }} · {{ opportunity.work_mode | replace('_', ' ') | title }}</p>
+      </div>
+      {{ m.badge(opportunity.status) }}
+    </div>
+    <div class="flex" style="gap:10px; flex-wrap:wrap;">
+      {% if opportunity.status in ('DRAFT', 'REJECTED') %}
+        <button class="btn btn-primary btn-sm" data-opportunity-action="/api/v1/recruiter/opportunities/{{ opportunity.id }}/submit" data-opportunity-action-name="{{ opportunity.title }}">Submit for review</button>
+      {% endif %}
+      {% if opportunity.status in ('DRAFT', 'REJECTED', 'PENDING_REVIEW', 'APPROVED') %}
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('recruiters.opportunity_edit_page', opportunity_id=opportunity.id) }}">Edit</a>
+      {% endif %}
+      <a class="btn btn-secondary btn-sm" href="{{ url_for('recruiters.applicants_page', opportunity_id=opportunity.id) }}">View applicants ({{ applications | length }})</a>
+      {% if opportunity.status == 'APPROVED' %}
+        <button class="btn btn-ghost btn-sm" data-opportunity-action="/api/v1/recruiter/opportunities/{{ opportunity.id }}/close" data-opportunity-action-name="{{ opportunity.title }}">Close applications</button>
+      {% endif %}
+      {% if opportunity.status == 'CLOSED' %}
+        <button class="btn btn-ghost btn-sm" style="color:var(--success);" data-opportunity-action="/api/v1/recruiter/opportunities/{{ opportunity.id }}/reopen" data-opportunity-action-name="{{ opportunity.title }}">Reopen applications</button>
+      {% endif %}
+      {% if opportunity.status in ('DRAFT', 'REJECTED', 'CLOSED') %}
+        <button class="btn btn-ghost btn-sm" style="color:var(--danger);" data-delete-opportunity="/api/v1/recruiter/opportunities/{{ opportunity.id }}" data-delete-opportunity-name="{{ opportunity.title }}">Delete</button>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if opportunity.status == 'REJECTED' %}
+    <div class="alert alert-error mb-3">🚫 This opportunity was not approved. Edit it and resubmit for a new review.</div>
+  {% elif opportunity.status == 'PENDING_REVIEW' %}
+    <div class="alert alert-warning mb-3">⏳ This posting is awaiting admin review. You'll be notified once a decision is made.</div>
+  {% endif %}
+
+  <div class="grid grid-2" style="align-items:start;">
+    <div class="card card-pad">
+      <h3 style="font-size:15px;" class="mb-1">About the role</h3>
+      <p style="white-space:pre-line;">{{ opportunity.description }}</p>
+      {% if opportunity.responsibilities %}
+        <h3 style="font-size:15px;" class="mt-3 mb-1">Responsibilities</h3>
+        <p style="white-space:pre-line;" class="small">{{ opportunity.responsibilities }}</p>
+      {% endif %}
+      <h3 style="font-size:15px;" class="mt-3 mb-1">Required skills</h3>
+      <div class="opp-skills">
+        {% for s in (opportunity.required_skills or '').split(',') %}{% if s.strip() %}<span class="skill-pill">{{ s.strip() }}</span>{% endif %}{% endfor %}
+      </div>
+      {% if opportunity.eligibility %}
+        <h3 style="font-size:15px;" class="mt-3 mb-1">Eligibility</h3>
+        <p class="small" style="white-space:pre-line;">{{ opportunity.eligibility }}</p>
+      {% endif %}
+      <div class="divider"></div>
+      <div class="grid grid-2" style="gap:10px;">
+        <div><div class="small muted">Salary / stipend</div><strong style="color:var(--success);">{{ opportunity.salary_or_stipend or '—' }}</strong></div>
+        <div><div class="small muted">Deadline</div><strong>{{ opportunity.application_deadline | date }}</strong></div>
+        <div><div class="small muted">Posted</div><strong>{{ opportunity.published_at | date }}</strong></div>
+        <div><div class="small muted">Applications</div><strong>{{ applications | length }}</strong></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Latest applicants</h3><a class="link-btn small" href="{{ url_for('recruiters.applicants_page', opportunity_id=opportunity.id) }}">See all</a></div>
+      {% if applications %}
+        <div class="table-wrap">
+          <table class="table">
+            <tbody>
+              {% for app in applications[:6] %}
+                <tr>
+                  <td>
+                    <div class="row-title">{{ app.student.full_name }}</div>
+                    <div class="row-sub">{{ app.student.department or '—' }} · {{ app.student.graduation_year or '—' }}</div>
+                  </td>
+                  <td>{{ m.badge(app.status) }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-state"><div class="es-icon">📥</div><h3>No applicants yet</h3><p>Once live, applicants will show up here.</p></div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}My profile — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">My profile</h1>
+      <p class="page-sub">Keep your academic details and resumes up to date.</p>
+    </div>
+    <div class="card" style="padding:12px 18px; min-width:220px;">
+      <div class="flex-between">
+        <span class="small" style="font-weight:600; color:var(--ink-2);">Completeness</span>
+        <strong style="color:var(--primary);">{{ student.completeness }}%</strong>
+      </div>
+      <div class="progress mt-1"><i style="width: {{ student.completeness }}%"></i></div>
+    </div>
+  </div>
+
+  <div class="grid grid-2" style="align-items:start;">
+    <div class="card">
+      <div class="card-header"><h3>Academic &amp; personal details</h3></div>
+      <div class="card-body">
+        <form data-api="/api/v1/student/profile" method="post" data-method="PUT" data-reload="1" novalidate>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Full name</label>
+              <input class="input" name="full_name" value="{{ student.full_name or '' }}" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone</label>
+              <input class="input" name="phone" value="{{ student.phone or '' }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">College</label>
+              <input class="input" name="college" value="{{ student.college.name if student.college else '' }}" list="collegeList">
+              <datalist id="collegeList">{% for c in colleges %}<option value="{{ c.name }}">{% endfor %}</datalist>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Degree</label>
+              <input class="input" name="degree" value="{{ student.degree or '' }}" placeholder="B.Tech">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Department</label>
+              <input class="input" name="department" value="{{ student.department or '' }}" placeholder="Computer Science">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Graduation year</label>
+              <input class="input" type="number" name="graduation_year" value="{{ student.graduation_year or '' }}" min="2020" max="2032">
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Skills <span class="form-hint">(comma separated)</span></label>
+              <input class="input" name="skills" value="{{ student.skills_list | join(', ') }}" placeholder="Python, SQL, Django">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary mt-3">Save profile</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card" id="resume">
+      <div class="card-header"><h3>Resumes</h3><span class="chip chip-role">{{ resumes | length }} uploaded</span></div>
+      <div class="card-body">
+        <div class="dropzone" id="resumeDropzone">
+          <div class="dz-icon">📄</div>
+          <div class="dz-text">Click or drop your resume here</div>
+          <div class="dz-sub">PDF, DOC or DOCX · max 5 MB</div>
+          <input type="file" id="resumeFile" accept=".pdf,.doc,.docx" hidden>
+        </div>
+        <div class="small muted mt-1" id="resumeUploadStatus"></div>
+
+        {% if resumes %}
+          <div class="mt-3" style="display:flex; flex-direction:column; gap:10px;">
+            {% for r in resumes %}
+              <div style="display:flex; align-items:center; gap:12px; padding:12px 14px; border:1px solid var(--line-soft); border-radius:12px; {{ 'opacity:0.55;' if not r.is_active }}">
+                <span style="font-size:20px;">{{ '📄' if r.file_type == 'pdf' else '📃' }}</span>
+                <div class="grow">
+                  <div style="font-weight:600; color:var(--ink); font-size:13.5px;">{{ r.file_name }}</div>
+                  <div class="small muted">{{ r.file_size | filesize }} · {{ r.uploaded_at | date }} {% if not r.is_active %}· archived{% endif %}</div>
+                </div>
+                {% if r.is_active %}
+                  <button class="link-btn small" data-preview-resume="{{ r.id }}">Preview</button>
+                  <a class="link-btn small" href="{{ url_for('shared.api_download_resume', resume_id=r.id) }}">Download</a>
+                  <button class="link-btn small danger" data-delete-resume="{{ r.id }}">Delete</button>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state" style="padding:28px;"><div class="es-icon">📄</div><h3>No resumes yet</h3><p>Upload at least one resume — you'll need it to apply for opportunities.</p></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

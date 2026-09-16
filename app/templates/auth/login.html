@@ -1,0 +1,29 @@
+{% extends "auth/auth_base.html" %}
+{% block title %}Log in — {{ app_name }}{% endblock %}
+{% block auth_content %}
+<h1 class="auth-title">Welcome back 👋</h1>
+<p class="auth-sub">Log in to your student, recruiter or admin account.</p>
+
+<form data-api="/api/v1/auth/login" method="post" novalidate>
+  <input type="hidden" name="next" value="{{ next_url }}">
+  <div class="form-group mb-2">
+    <label class="form-label" for="email">Email address</label>
+    <input class="input" type="email" id="email" name="email" placeholder="you@college.edu" required autocomplete="email">
+  </div>
+  <div class="form-group mb-1">
+    <label class="form-label" for="password">Password</label>
+    <input class="input" type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+  </div>
+  <div class="flex-between mt-1">
+    <span></span>
+    <a class="small" href="{{ url_for('auth.forgot_password_page') }}">Forgot password?</a>
+  </div>
+  <button type="submit" class="btn btn-primary btn-block btn-lg mt-3">Log in</button>
+</form>
+
+<div class="auth-divider">New here?</div>
+<div class="auth-switch">
+  <a href="{{ url_for('auth.register_student_page') }}">Register as a student</a> ·
+  <a href="{{ url_for('auth.register_recruiter_page') }}">Register a company</a>
+</div>
+{% endblock %}

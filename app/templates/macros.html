@@ -1,0 +1,90 @@
+{% macro badge(status) -%}
+  {% set label = status_label(status) %}
+  <span class="badge badge-{{ status }}"><span class="dot"></span>{{ label or status }}</span>
+{%- endmacro %}
+
+{% macro pagination(p, base_url='') -%}
+  {% if p and p.pages and p.pages > 1 %}
+    <nav class="pagination" aria-label="Pagination">
+      {% set qs = request.args.to_dict() %}
+      {% set _ = qs.pop('page', None) %}
+      {% if p.page > 1 %}
+        <a class="page-link" href="{{ url_for(request.endpoint, page=p.page-1, **qs) }}">‹ Prev</a>
+      {% else %}
+        <span class="page-link disabled">‹ Prev</span>
+      {% endif %}
+      {% set start = [1, p.page - 2] | max %}
+      {% set end = [p.pages, p.page + 2] | min %}
+      {% if start > 1 %}<a class="page-link" href="{{ url_for(request.endpoint, page=1, **qs) }}">1</a>{% if start > 2 %}<span class="page-link disabled">…</span>{% endif %}{% endif %}
+      {% for i in range(start, end + 1) %}
+        <a class="page-link {{ 'active' if i == p.page }}" href="{{ url_for(request.endpoint, page=i, **qs) }}">{{ i }}</a>
+      {% endfor %}
+      {% if end < p.pages %}{% if end < p.pages - 1 %}<span class="page-link disabled">…</span>{% endif %}<a class="page-link" href="{{ url_for(request.endpoint, page=p.pages, **qs) }}">{{ p.pages }}</a>{% endif %}
+      {% if p.page < p.pages %}
+        <a class="page-link" href="{{ url_for(request.endpoint, page=p.page+1, **qs) }}">Next ›</a>
+      {% else %}
+        <span class="page-link disabled">Next ›</span>
+      {% endif %}
+    </nav>
+  {% endif %}
+{%- endmacro %}
+
+{% macro empty(title, text, icon='📭') -%}
+  <div class="empty-state">
+    <div class="es-icon">{{ icon }}</div>
+    <h3>{{ title }}</h3>
+    <p>{{ text }}</p>
+    {{ caller() if caller }}
+  </div>
+{%- endmacro %}
+
+{% macro stat_card(value, label, icon, tone='') -%}
+  <div class="card stat-card card-hover">
+    <div class="stat-icon {{ tone }}">{{ icon }}</div>
+    <div class="stat-value">{{ value }}</div>
+    <div class="stat-label">{{ label }}</div>
+  </div>
+{%- endmacro %}
+
+{% macro opp_card(opp) -%}
+  <article class="card card-hover opp-card">
+    <div class="opp-top">
+      <div class="opp-logo">{{ opp.company_name[:1] | upper }}</div>
+      <span class="chip">{{ 'Internship' if opp.type == 'INTERNSHIP' else 'Full-time' }}</span>
+    </div>
+    <h3 class="opp-title"><a href="{{ url_for('students.opportunity_detail_page', opportunity_id=opp.id) }}">{{ opp.title }}</a></h3>
+    <div class="opp-company">{{ opp.company_name }}</div>
+    <div class="opp-meta">
+      <span class="meta-pill">📍 {{ opp.location or '—' }}</span>
+      <span class="meta-pill">{{ opp.work_mode | replace('_', ' ') | title }}</span>
+      <span class="meta-pill">📅 {{ opp.application_deadline | date }}</span>
+    </div>
+    <div class="opp-skills">
+      {% for s in (opp.required_skills or '').split(',')[:4] %}
+        <span class="skill-pill">{{ s.strip()[:24] }}</span>
+      {% endfor %}
+    </div>
+    <div class="opp-foot">
+      <span class="opp-salary">{{ opp.salary_or_stipend or 'Stipend TBD' }}</span>
+      <a class="btn btn-secondary btn-sm" href="{{ url_for('students.opportunity_detail_page', opportunity_id=opp.id) }}">View details</a>
+    </div>
+  </article>
+{%- endmacro %}
+
+{% macro interview_meta(iv) -%}
+  <div class="flex flex-wrap" style="gap:8px;">
+    <span class="meta-pill">🗓 {{ iv.scheduled_date | date }}</span>
+    <span class="meta-pill">🕒 {{ iv.scheduled_time | time }}</span>
+    <span class="meta-pill">{{ iv.mode | title }}</span>
+    {% if iv.location %}<span class="meta-pill">📍 {{ iv.location }}</span>{% endif %}
+    {% if iv.meeting_details %}<span class="meta-pill">🔗 {{ iv.meeting_details }}</span>{% endif %}
+  </div>
+{%- endmacro %}
+
+{% macro empty_state(title, text, icon='📭') -%}
+  <div class="empty-state">
+    <div class="es-icon">{{ icon }}</div>
+    <h3>{{ title }}</h3>
+    <p>{{ text }}</p>
+  </div>
+{%- endmacro %}

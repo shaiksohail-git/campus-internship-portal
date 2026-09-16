@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% import "macros.html" as m with context %}
+{% block title %}My opportunities — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">My opportunities</h1>
+      <p class="page-sub">Create postings, submit them for review and manage applicants.</p>
+    </div>
+    {% if recruiter.is_approved %}
+      <a class="btn btn-primary" href="{{ url_for('recruiters.opportunity_new_page') }}">+ New opportunity</a>
+    {% endif %}
+  </div>
+
+  {% if not recruiter.is_approved %}
+    <div class="recruiter-banner {{ 'pending' if recruiter.approval_status == 'PENDING' else 'rejected' }}">
+      <span class="rb-ic">{{ '⏳' if recruiter.approval_status == 'PENDING' else '🚫' }}</span>
+      <div>Your company is {{ 'still under review' if recruiter.approval_status == 'PENDING' else 'not approved' }}. Opportunity publishing unlocks once the placement office approves you.</div>
+    </div>
+  {% endif %}
+
+  <div class="tabs">
+    <a class="tab {{ 'active' if not current_status }}" href="{{ url_for('recruiters.opportunities_page') }}">All</a>
+    <a class="tab {{ 'active' if current_status == 'DRAFT' }}" href="{{ url_for('recruiters.opportunities_page', status='DRAFT') }}">Drafts</a>
+    <a class="tab {{ 'active' if current_status == 'PENDING_REVIEW' }}" href="{{ url_for('recruiters.opportunities_page', status='PENDING_REVIEW') }}">Pending review</a>
+    <a class="tab {{ 'active' if current_status == 'APPROVED' }}" href="{{ url_for('recruiters.opportunities_page', status='APPROVED') }}">Live</a>
+    <a class="tab {{ 'active' if current_status == 'REJECTED' }}" href="{{ url_for('recruiters.opportunities_page', status='REJECTED') }}">Rejected</a>
+    <a class="tab {{ 'active' if current_status == 'CLOSED' }}" href="{{ url_for('recruiters.opportunities_page', status='CLOSED') }}">Closed</a>
+  </div>
+
+  <div class="card">
+    {% if opportunities %}
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Type</th>
+              <th>Deadline</th>
+              <th>Status</th>
+              <th>Applicants</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for opp in opportunities %}
+              <tr>
+                <td>
+                  <div class="row-title">{{ opp.title }}</div>
+                  <div class="row-sub">{{ opp.location or '—' }} · {{ opp.work_mode | replace('_', ' ') | title }}</div>
+                </td>
+                <td><span class="chip">{{ 'Internship' if opp.type == 'INTERNSHIP' else 'Full-time' }}</span></td>
+                <td class="small">{{ opp.application_deadline | date }}</td>
+                <td>{{ m.badge(opp.status) }}</td>
+                <td>
+                  <span class="chip chip-outline">{{ opp.applications | length }}</span>
+                </td>
+                <td class="text-right">
+                  <a class="link-btn small" href="{{ url_for('recruiters.opportunity_detail_page', opportunity_id=opp.id) }}">View</a>
+                  {% if opp.status in ('DRAFT', 'REJECTED', 'PENDING_REVIEW', 'APPROVED') %}
+                    · <a class="link-btn small" href="{{ url_for('recruiters.opportunity_edit_page', opportunity_id=opp.id) }}">Edit</a>
+                  {% endif %}
+                  {% if opp.status == 'APPROVED' %}
+                    · <button class="link-btn small" style="color:var(--warning);" data-opportunity-action="/api/v1/recruiter/opportunities/{{ opp.id }}/close" data-opportunity-action-name="{{ opp.title }}">Close</button>
+                  {% endif %}
+                  {% if opp.status == 'CLOSED' %}
+                    · <button class="link-btn small" style="color:var(--success);" data-opportunity-action="/api/v1/recruiter/opportunities/{{ opp.id }}/reopen" data-opportunity-action-name="{{ opp.title }}">Reopen</button>
+                  {% endif %}
+                  {% if opp.status in ('DRAFT', 'REJECTED', 'CLOSED') %}
+                    · <button class="link-btn small" style="color:var(--danger);" data-delete-opportunity="/api/v1/recruiter/opportunities/{{ opp.id }}" data-delete-opportunity-name="{{ opp.title }}">Delete</button>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {{ m.pagination(pagination) }}
+    {% else %}
+      <div class="empty-state">
+        <div class="es-icon">💼</div>
+        <h3>No opportunities yet</h3>
+        <p>Create your first internship or full-time posting to start receiving applications.</p>
+        {% if recruiter.is_approved %}
+          <a class="btn btn-primary btn-sm" href="{{ url_for('recruiters.opportunity_new_page') }}">Create opportunity</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% import "macros.html" as m with context %}
+{% block title %}{{ 'Edit' if announcement else 'New' }} announcement — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container" style="max-width: 720px;">
+  <a class="link-btn small" href="{{ url_for('admin.announcements_page') }}">← Announcements</a>
+  <div class="page-header mt-1">
+    <div>
+      <h1 class="page-title">{{ 'Edit announcement' if announcement else 'New announcement' }}</h1>
+      <p class="page-sub">Write an announcement to share with students and/or recruiters.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <form id="annForm" novalidate>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label class="form-label">Title <span class="req">*</span></label>
+            <input class="input" id="f_title" value="{{ announcement.title if announcement else '' }}" placeholder="e.g. Placement season starts 1st Sept" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Audience <span class="req">*</span></label>
+            <select class="input" id="f_audience" required>
+              <option value="ALL" {{ 'selected' if announcement and announcement.audience == 'ALL' }}>Students & Recruiters</option>
+              <option value="STUDENT" {{ 'selected' if announcement and announcement.audience == 'STUDENT' }}>Students only</option>
+              <option value="RECRUITER" {{ 'selected' if announcement and announcement.audience == 'RECRUITER' }}>Recruiters only</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="input" id="f_published">
+              <option value="true" {{ 'selected' if not announcement or announcement.is_published }}>Published</option>
+              <option value="false" {{ 'selected' if announcement and not announcement.is_published }}>Draft</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">Announcement body <span class="req">*</span></label>
+            <textarea class="input" id="f_body" rows="6" placeholder="Write your announcement here..." required>{{ announcement.body if announcement else '' }}</textarea>
+          </div>
+        </div>
+
+        <div class="flex mt-3" style="gap:12px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-primary" id="saveBtn">{{ 'Update' if announcement else 'Publish' }} announcement</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  var form = document.getElementById("annForm");
+  {% if announcement %}
+    var URL = "/api/v1/admin/announcements/{{ announcement.id }}";
+    var METHOD = "PUT";
+  {% else %}
+    var URL = "/api/v1/admin/announcements";
+    var METHOD = "POST";
+  {% endif %}
+
+  function payload() {
+    return {
+      title: document.getElementById("f_title").value,
+      body: document.getElementById("f_body").value,
+      audience: document.getElementById("f_audience").value,
+      is_published: document.getElementById("f_published").value === "true",
+    };
+  }
+
+  document.getElementById("saveBtn").addEventListener("click", async function () {
+    var btn = this;
+    btn.disabled = true;
+    btn.textContent = "Saving...";
+    try {
+      var res = await api(URL, { method: METHOD, json: payload() });
+      toast(res.message, "success");
+      setTimeout(function () { window.location.href = "/admin/announcements"; }, 700);
+    } catch (err) {
+      toast(err.message, "error");
+      btn.disabled = false;
+      btn.textContent = METHOD === "PUT" ? "Update announcement" : "Publish announcement";
+    }
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Dev mailbox — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="alert alert-info mb-3">
+    📬 <strong>Development mailbox.</strong> Emails are captured here because <code>MAIL_MODE=console</code>. Set SMTP credentials in <code>.env</code> to send real emails.
+  </div>
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Dev mailbox</h1>
+      <p class="page-sub">Every email the app has “sent” during this development session.</p>
+    </div>
+  </div>
+  <div class="card">
+    {% if mails %}
+      {% for mail in mails %}
+        <div style="padding:16px 22px; border-bottom:1px solid var(--line-soft);">
+          <div class="flex-between">
+            <strong style="color:var(--ink); font-size:14px;">{{ mail.subject }}</strong>
+            <span class="small muted">{{ mail.created_at | datetime }}</span>
+          </div>
+          <div class="small muted mt-1">To: {{ mail.recipient }}</div>
+          <pre style="white-space:pre-wrap; font-family:inherit; font-size:13px; color:var(--body); background:#f8fafc; border:1px solid var(--line); border-radius:10px; padding:12px; margin-top:10px;">{{ mail.body }}</pre>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state"><div class="es-icon">📭</div><h3>No emails yet</h3><p>Register an account or trigger a notification to see captured emails here.</p></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

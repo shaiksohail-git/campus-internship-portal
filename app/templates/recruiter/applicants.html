@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% import "macros.html" as m with context %}
+{% block title %}Applicants — {{ opportunity.title }} — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <a class="link-btn small" href="{{ url_for('recruiters.opportunity_detail_page', opportunity_id=opportunity.id) }}">← {{ opportunity.title }}</a>
+  <div class="page-header mt-1">
+    <div>
+      <h1 class="page-title">Applicants</h1>
+      <p class="page-sub">{{ opportunity.title }} · {{ applications | length }} application(s)</p>
+    </div>
+    <div class="flex" style="gap:8px; flex-wrap:wrap;">
+      {% for s in ['APPLIED', 'UNDER_REVIEW', 'SHORTLISTED', 'INTERVIEW_SCHEDULED', 'SELECTED', 'REJECTED'] %}
+        <a class="chip {{ 'chip-role' if request.args.get('status', '') == s }}" href="{{ url_for('recruiters.applicants_page', opportunity_id=opportunity.id, status=s) if s != 'APPLIED' else url_for('recruiters.applicants_page', opportunity_id=opportunity.id) }}">{{ status_label(s) }}</a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    {% if applications %}
+      {% for app in applications %}
+        <div style="padding:18px 22px; border-bottom:1px solid var(--line-soft);">
+          <div class="flex-between flex-wrap">
+            <div class="flex" style="gap:14px;">
+              <span class="avatar" style="width:44px; height:44px; font-size:17px;">{{ app.student.full_name[:1] | upper }}</span>
+              <div>
+                <div style="font-weight:700; color:var(--ink);">{{ app.student.full_name }}</div>
+                <div class="small muted">{{ app.student.degree or '—' }} · {{ app.student.department or '—' }} · {{ app.student.graduation_year or '—' }}</div>
+                <div class="small muted">{{ app.student.college.name if app.student.college else '—' }} · applied {{ app.applied_at | date }}</div>
+                {% if app.student.skills_list %}
+                  <div class="opp-skills mt-1">{% for s in app.student.skills_list %}<span class="skill-pill">{{ s }}</span>{% endfor %}</div>
+                {% endif %}
+              </div>
+            </div>
+            <div class="flex" style="flex-direction:column; align-items:flex-end; gap:6px;">
+              {{ m.badge(app.status) }}
+              <div class="flex" style="gap:6px;">
+                {% if app.resume %}
+                  <a class="btn btn-ghost btn-sm" href="{{ url_for('shared.api_download_resume', resume_id=app.resume.id) }}">📄 Resume</a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-2" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+            {% set next_steps = {'APPLIED': [('UNDER_REVIEW', 'Under review'), ('SHORTLISTED', 'Shortlist'), ('REJECTED', 'Reject')],
+                                 'UNDER_REVIEW': [('SHORTLISTED', 'Shortlist'), ('REJECTED', 'Reject')],
+                                 'SHORTLISTED': [('INTERVIEW_SCHEDULED', 'Schedule interview'), ('REJECTED', 'Reject')],
+                                 'INTERVIEW_SCHEDULED': [('SELECTED', 'Mark selected'), ('REJECTED', 'Reject')]}.get(app.status, []) %}
+            {% for s, label in next_steps %}
+              {% if s == 'INTERVIEW_SCHEDULED' and app.status == 'SHORTLISTED' %}
+                <button class="btn btn-primary btn-sm" data-schedule-interview="{{ app.id }}">🎤 {{ label }}</button>
+              {% elif s != 'INTERVIEW_SCHEDULED' %}
+                <button class="btn btn-{{ 'secondary' if s != 'REJECTED' else 'ghost' }} btn-sm" data-status-action="{{ app.id }}" data-status="{{ s }}" data-status-target="{{ label }}">{{ label }}</button>
+              {% endif %}
+            {% endfor %}              {% if app.status == 'SELECTED' %}
+              {% if app.offer_letter and app.offer_letter.sent_at %}
+                <span class="chip" style="background:var(--success-tint); color:var(--success);">✉ Offer letter sent</span>
+                <a class="btn btn-ghost btn-sm" href="/api/v1/recruiter/applications/{{ app.id }}/offer-letter/download">⬇ Download PDF</a>
+              {% else %}
+                <button class="btn btn-primary btn-sm" data-send-offer="{{ app.id }}" data-offer-student="{{ app.student.full_name }}" data-offer-title="Offer — {{ opportunity.title }} at {{ opportunity.company_name }}" data-offer-salary="{{ opportunity.salary_or_stipend or '' }}">✉ Send offer letter</button>
+              {% endif %}
+            {% endif %}
+            {% if app.active_interview %}
+              <span class="chip chip-outline">🎤 Interview: {{ app.active_interview.scheduled_date | date }} {{ app.active_interview.scheduled_time | time }}</span>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+      {{ m.pagination(pagination) }}
+    {% else %}
+      <div class="empty-state"><div class="es-icon">📥</div><h3>No applicants</h3><p>Students who apply to this opportunity will appear here.</p></div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="modal-backdrop" id="offerModal" hidden>
+  <div class="modal modal-lg" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h3 id="offerModalTitle">Send offer letter</h3>
+      <button class="icon-btn" id="offerModalClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="small muted mb-2">Sending offer letter to <strong id="offerStudentName"></strong></p>
+      <div class="form-group">
+        <label class="form-label">Title</label>
+        <input class="input" id="offerTitle" placeholder="e.g. Full-time Offer — SWE Intern">
+      </div>
+      <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="form-group">
+          <label class="form-label">Salary / stipend</label>
+          <input class="input" id="offerSalary" placeholder="₹12 LPA">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Joining date</label>
+          <input class="input" type="date" id="offerJoiningDate">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Offer details</label>
+        <textarea class="input" id="offerBody" rows="6" placeholder="Write the offer letter content here...
+
+Dear [Candidate Name],
+
+We are pleased to offer you the position of...
+
+Terms and conditions...
+
+Best regards,
+[Company]"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="offerCancel">Cancel</button>
+      <button class="btn btn-primary" id="offerSendBtn">✉ Send offer letter</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  (function () {
+    let currentAppId = null;
+    const modal = document.getElementById("offerModal");
+    const titleInput = document.getElementById("offerTitle");
+    const salaryInput = document.getElementById("offerSalary");
+    const joinDateInput = document.getElementById("offerJoiningDate");
+    const bodyInput = document.getElementById("offerBody");
+    const studentNameEl = document.getElementById("offerStudentName");
+    const sendBtn = document.getElementById("offerSendBtn");
+
+    document.querySelectorAll("[data-send-offer]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        currentAppId = btn.dataset.sendOffer;
+        studentNameEl.textContent = btn.dataset.offerStudent;
+        titleInput.value = btn.dataset.offerTitle || "";
+        salaryInput.value = btn.dataset.offerSalary || "";
+        joinDateInput.value = "";
+        bodyInput.value = "";
+        modal.hidden = false;
+        document.body.style.overflow = "hidden";
+      });
+    });
+
+    function closeModal() {
+      modal.hidden = true;
+      document.body.style.overflow = "";
+      currentAppId = null;
+    }
+
+    document.getElementById("offerModalClose").addEventListener("click", closeModal);
+    document.getElementById("offerCancel").addEventListener("click", closeModal);
+    modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+    sendBtn.addEventListener("click", async () => {
+      if (!bodyInput.value.trim()) {
+        toast("Please write the offer letter content.", "error");
+        return;
+      }
+      sendBtn.disabled = true;
+      sendBtn.textContent = "Sending…";
+      try {
+        const res = await api(`/api/v1/recruiter/applications/${currentAppId}/offer-letter`, {
+          method: "POST",
+          json: {
+            title: titleInput.value.trim(),
+            salary_or_stipend: salaryInput.value.trim(),
+            joining_date: joinDateInput.value || null,
+            body: bodyInput.value.trim(),
+          },
+        });
+        toast(res.message, "success");
+        setTimeout(() => window.location.reload(), 700);
+      } catch (err) {
+        toast(err.message, "error");
+        sendBtn.disabled = false;
+        sendBtn.textContent = "✉ Send offer letter";
+      }
+    });
+  })();
+</script>
+{% endblock %}

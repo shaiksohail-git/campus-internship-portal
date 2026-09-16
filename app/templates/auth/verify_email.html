@@ -1,0 +1,15 @@
+{% extends "auth/auth_base.html" %}
+{% block title %}Email verification — {{ app_name }}{% endblock %}
+{% block auth_content %}
+{% if success %}
+  <div class="big-ic ic-green">✅</div>
+  <h1 class="auth-title text-center" style="text-align:center;">Email verified!</h1>
+  <p class="auth-sub" style="text-align:center;">Your account is now active{% if user %}, {{ user.display_name }}{% endif %}. You can log in and get started.</p>
+  <a class="btn btn-primary btn-block btn-lg" href="{{ url_for('auth.login_page') }}">Log in now</a>
+{% else %}
+  <div class="big-ic ic-red">⚠️</div>
+  <h1 class="auth-title text-center" style="text-align:center;">Verification failed</h1>
+  <p class="auth-sub" style="text-align:center;">{{ message }}</p>
+  <a class="btn btn-primary btn-block btn-lg" href="{{ url_for('auth.login_page') }}">Go to login</a>
+{% endif %}
+{% endblock %}

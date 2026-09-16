@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% import "macros.html" as m with context %}
+{% block title %}Students — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Students</h1>
+      <p class="page-sub">{{ pagination.total }} registered student(s)</p>
+    </div>
+  </div>
+
+  <form class="card filter-bar mb-3" method="get">
+    <div class="search-box">
+      <span class="search-ic">🔍</span>
+      <input class="input" type="search" name="search" placeholder="Search name, email, department…" value="{{ request.args.get('search', '') }}">
+    </div>
+    <button class="btn btn-ghost" type="submit">Search</button>
+  </form>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>Student</th><th>Department</th><th>Graduation</th><th>Applications</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for user, profile in rows %}
+            <tr>
+              <td>
+                <div class="flex" style="gap:10px;">
+                  <span class="avatar">{{ profile.full_name[:1] | upper }}</span>
+                  <div>
+                    <div class="row-title">{{ profile.full_name }}</div>
+                    <div class="row-sub">{{ user.email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>{{ profile.department or '—' }}</td>
+              <td>{{ profile.graduation_year or '—' }}</td>
+              <td><span class="chip chip-outline">{{ app_counts.get(profile.id, 0) }}</span></td>
+              <td>
+                {% if not user.is_active %}
+                  <span class="badge badge-REJECTED"><span class="dot"></span>Suspended</span>
+                {% elif not user.is_verified %}
+                  <span class="badge badge-PENDING"><span class="dot"></span>Unverified</span>
+                {% else %}
+                  <span class="badge badge-APPROVED"><span class="dot"></span>Active</span>
+                {% endif %}
+              </td>
+              <td class="text-right">
+                {% if user.is_active %}
+                  <button class="link-btn small danger" data-user-action="/api/v1/admin/users/{{ user.id }}/suspend">Suspend</button>
+                {% else %}
+                  <button class="link-btn small" data-user-action="/api/v1/admin/users/{{ user.id }}/reactivate">Reactivate</button>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {{ m.pagination(pagination) }}
+  </div>
+</div>
+{% endblock %}

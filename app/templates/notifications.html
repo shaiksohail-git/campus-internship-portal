@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% import "macros.html" as m with context %}
+{% block title %}Notifications — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Notifications</h1>
+      <p class="page-sub">Application updates, interview alerts and approval news.</p>
+    </div>
+    <button class="btn btn-ghost btn-sm" id="pageMarkAll">Mark all as read</button>
+  </div>
+
+  <div class="card">
+    {% if notifications %}
+      <div class="table-wrap">
+        <table class="table">
+          <tbody>
+            {% for n in notifications %}
+              <tr class="{{ 'notif-row-unread' if not n.is_read }}" data-notif-page="{{ n.id }}" style="cursor:pointer; {{ 'background: var(--primary-tint);' if not n.is_read }}">
+                <td style="width:44px;">
+                  <div style="width:9px;height:9px;border-radius:50%;background:{{ 'var(--primary)' if not n.is_read else 'transparent' }};margin:auto;"></div>
+                </td>
+                <td>
+                  <div class="row-title">{{ n.title }}</div>
+                  <div class="row-sub">{{ n.message }}</div>
+                  <div class="row-sub">{{ n.created_at | datetime }}</div>
+                </td>
+                <td class="text-right"><span class="chip chip-outline">{{ n.type | replace('_', ' ') | title }}</span></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {{ m.pagination(pagination) }}
+    {% else %}
+      <div class="empty-state">
+        <div class="es-icon">🔔</div>
+        <h3>No notifications yet</h3>
+        <p>Updates about your applications, interviews and approvals will show up here.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  document.getElementById("pageMarkAll")?.addEventListener("click", async () => {
+    try {
+      await fetch("/api/v1/notifications/read-all", {
+        method: "POST",
+        headers: { "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content },
+      });
+      document.querySelectorAll(".notif-row-unread").forEach((r) => (r.style.background = ""));
+      window.location.reload();
+    } catch (e) {}
+  });
+</script>
+{% endblock %}

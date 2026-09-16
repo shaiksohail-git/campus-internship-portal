@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% import "macros.html" as m with context %}
+{% block title %}Analytics — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Placement analytics</h1>
+      <p class="page-sub">Basic placement statistics for the placement office.</p>
+    </div>
+    <a class="btn btn-ghost btn-sm" href="{{ url_for('admin.export_analytics_csv') }}">Export CSV</a>
+  </div>
+
+  <div class="grid grid-4 mb-3">
+    {{ m.stat_card(analytics.stats.students, 'Registered students', '🎓', 'stat-ic-blue') }}
+    {{ m.stat_card(analytics.stats.recruiters, 'Registered companies', '🏢', 'stat-ic-violet') }}
+    {{ m.stat_card(analytics.stats.total_applications, 'Total applications', '📥', 'stat-ic-amber') }}
+    {{ m.stat_card(analytics.stats.students_selected, 'Students selected', '🏆', 'stat-ic-green') }}
+    {{ m.stat_card(analytics.stats.interviews_scheduled, 'Interviews', '🎤', 'stat-ic-cyan') }}
+    {{ m.stat_card(analytics.rejected, 'Rejected', '❌', 'stat-ic-red') }}
+    {{ m.stat_card(analytics.shortlisted, 'Currently shortlisted', '⭐', 'stat-ic-amber') }}
+    <div class="card stat-card card-hover">
+      <div class="stat-icon" style="background:linear-gradient(135deg,var(--primary),var(--violet)); color:#fff;">📈</div>
+      <div class="stat-value">{{ analytics.selection_rate }}%</div>
+      <div class="stat-label">Placement / selection rate</div>
+    </div>
+  </div>
+
+  <div class="grid grid-2 mb-3">
+    <div class="card">
+      <div class="card-header"><h3>Applications by type</h3></div>
+      <div class="card-body">
+        <div class="hbar-row">
+          <span class="hbar-label">Internship</span>
+          <div class="hbar-track"><div class="hbar-fill" style="width: {{ analytics.internship_ratio }}%;"></div></div>
+          <span class="hbar-value">{{ analytics.internship_applications }}</span>
+        </div>
+        <div class="hbar-row">
+          <span class="hbar-label">Full-time</span>
+          <div class="hbar-track"><div class="hbar-fill" style="width: {{ analytics.fulltime_ratio }}%; background: linear-gradient(90deg,#7c3aed,#a855f7);"></div></div>
+          <span class="hbar-value">{{ analytics.fulltime_applications }}</span>
+        </div>
+        <div class="flex mt-3" style="gap:18px; align-items:center; justify-content:center;">
+          <div class="donut" style="--pct: {{ analytics.selection_rate }};">
+            <div class="donut-value">{{ analytics.selection_rate }}%<small>selection rate</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Monthly application activity</h3></div>
+      <div class="card-body">
+        {% set max_month = analytics.monthly_activity | map(attribute='count') | max if analytics.monthly_activity else 1 %}
+        <div class="bar-chart">
+          {% for month in analytics.monthly_activity %}
+            <div class="bar-col">
+              <span class="bar-value">{{ month.count }}</span>
+              <div class="bar-track"><div class="bar-fill" style="height: {{ (month.count / max_month * 100) | round(1) if max_month else 0 }}%;"></div></div>
+              <span class="bar-label">{{ month.label }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-2 mb-3">
+    <div class="card">
+      <div class="card-header"><h3>Department-wise applications</h3></div>
+      <div class="card-body">
+        {% if analytics.dept_applications %}
+          {% set max_dept = analytics.dept_applications.values() | max %}
+          {% for dept, count in analytics.dept_applications.items() %}
+            <div class="hbar-row">
+              <span class="hbar-label">{{ dept }}</span>
+              <div class="hbar-track"><div class="hbar-fill" style="width: {{ (count / max_dept * 100) | round(1) }}%;"></div></div>
+              <span class="hbar-value">{{ count }}</span>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="muted small">No department data yet.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Company-wise selections</h3></div>
+      <div class="card-body">
+        {% if analytics.company_hiring %}
+          {% set max_co = analytics.company_hiring | map(attribute=1) | max %}
+          {% for name, count in analytics.company_hiring %}
+            <div class="hbar-row">
+              <span class="hbar-label">{{ name }}</span>
+              <div class="hbar-track"><div class="hbar-fill" style="width: {{ (count / max_co * 100) | round(1) }}%; background: linear-gradient(90deg,#0d9488,#14b8a6);"></div></div>
+              <span class="hbar-value">{{ count }}</span>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="muted small">No selections yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3>Most popular opportunities</h3></div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>#</th><th>Opportunity</th><th>Company</th><th>Applications</th></tr></thead>
+        <tbody>
+          {% for title, company, count in analytics.top_opportunities %}
+            <tr>
+              <td style="width:50px;">{{ loop.index }}</td>
+              <td class="row-title">{{ title }}</td>
+              <td>{{ company }}</td>
+              <td><span class="chip chip-outline">{{ count }}</span></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

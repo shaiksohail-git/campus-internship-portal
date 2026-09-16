@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Company profile — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Company profile</h1>
+      <p class="page-sub">The placement office uses these details to verify your company.</p>
+    </div>
+    <span class="chip chip-role">{{ {'PENDING': '⏳ Pending approval', 'APPROVED': '✅ Approved', 'REJECTED': '🚫 Rejected'}[recruiter.approval_status] }}</span>
+  </div>
+
+  <div class="card" style="max-width: 760px;">
+    <div class="card-header"><h3>Company information</h3></div>
+    <div class="card-body">
+      <form data-api="/api/v1/recruiter/profile" method="post" data-method="PUT" data-reload="1" novalidate>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Company name <span class="req">*</span></label>
+            <input class="input" name="company_name" value="{{ recruiter.company_name or '' }}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Company email</label>
+            <input class="input" type="email" name="company_email" value="{{ recruiter.company_email or '' }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Website</label>
+            <input class="input" name="website" value="{{ recruiter.website or '' }}" placeholder="https://company.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Contact person</label>
+            <input class="input" name="contact_person" value="{{ recruiter.contact_person or '' }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Contact phone</label>
+            <input class="input" name="contact_phone" value="{{ recruiter.contact_phone or '' }}">
+          </div>
+          <div class="form-group full">
+            <label class="form-label">Company description <span class="req">*</span></label>
+            <textarea class="input" name="company_description" rows="4" required>{{ recruiter.company_description or '' }}</textarea>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Save profile</button>
+      </form>
+    </div>
+  </div>
+
+  {% if recruiter.approved_at %}
+    <div class="card card-pad mt-2" style="max-width: 760px; display:flex; gap:10px; align-items:center;">
+      <span style="font-size:20px;">✅</span>
+      <div class="small">Approved by the placement office on <strong>{{ recruiter.approved_at | date }}</strong>. You can create and publish opportunities.</div>
+    </div>
+  {% endif %}
+
+  <div class="card mt-2" style="max-width: 760px;">
+    <div class="card-header"><h3>Email preferences</h3></div>
+    <div class="card-body">
+      <form id="digestForm">
+        <div class="flex-between" style="padding:8px 0;">
+          <div>
+            <div style="font-weight:600; font-size:14px;">📊 Weekly analytics digest</div>
+            <div class="small muted">Receive a weekly email summary of your hiring analytics — applications, applicant colleges, departments, and peer comparison.</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="digestToggle" {{ 'checked' if recruiter.weekly_digest_enabled }}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  (function () {
+    var toggle = document.getElementById("digestToggle");
+    if (!toggle) return;
+    toggle.addEventListener("change", async function () {
+      try {
+        var res = await api("/api/v1/recruiter/digest-preference", {
+          method: "PUT",
+          json: { enabled: toggle.checked },
+        });
+        toast(res.message, "success");
+      } catch (err) {
+        toast(err.message, "error");
+        toggle.checked = !toggle.checked;
+      }
+    });
+  })();
+</script>
+{% endblock %}

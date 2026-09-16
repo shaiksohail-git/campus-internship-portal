@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% import "macros.html" as m with context %}
+{% block title %}Admin dashboard — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Placement dashboard</h1>
+      <p class="page-sub">Overview of the entire placement process at a glance.</p>
+    </div>
+    <a class="btn btn-secondary" href="{{ url_for('admin.analytics_page') }}">View analytics</a>
+  </div>
+
+  <div class="grid grid-4 mb-3">
+    {{ m.stat_card(stats.students, 'Students', '🎓', 'stat-ic-blue') }}
+    {{ m.stat_card(stats.recruiters, 'Recruiters', '🏢', 'stat-ic-violet') }}
+    {{ m.stat_card(stats.active_opportunities, 'Live opportunities', '💼', 'stat-ic-green') }}
+    {{ m.stat_card(stats.total_applications, 'Applications', '📥', 'stat-ic-amber') }}
+    {{ m.stat_card(stats.interviews_scheduled, 'Interviews', '🎤', 'stat-ic-cyan') }}
+    {{ m.stat_card(stats.students_selected, 'Students selected', '🏆', 'stat-ic-red') }}
+    <div class="card stat-card card-hover" style="border-color:#fde68a;">
+      <div class="stat-icon stat-ic-amber">⏳</div>
+      <div class="stat-value">{{ stats.pending_recruiters }}</div>
+      <div class="stat-label">Recruiters awaiting approval</div>
+    </div>
+    <div class="card stat-card card-hover" style="border-color:#fde68a;">
+      <div class="stat-icon stat-ic-amber">📝</div>
+      <div class="stat-value">{{ stats.pending_opportunities }}</div>
+      <div class="stat-label">Postings awaiting approval</div>
+    </div>
+  </div>
+
+  <div class="grid grid-2" style="grid-template-columns: 1fr 1fr;">
+    <div class="card">
+      <div class="card-header"><h3>Pending recruiter approvals</h3><a class="link-btn small" href="{{ url_for('admin.recruiters_page') }}">Manage</a></div>
+      {% if pending_recruiters %}
+        {% for r in pending_recruiters %}
+          <div style="padding:14px 22px; border-bottom:1px solid var(--line-soft);">
+            <div class="flex-between">
+              <div>
+                <strong style="color:var(--ink);">{{ r.company_name }}</strong>
+                <div class="small muted">{{ r.user.email }} · {{ r.created_at | date }}</div>
+              </div>
+              <div class="flex" style="gap:8px;">
+                <button class="btn btn-success btn-sm" data-admin-action="/api/v1/admin/recruiters/{{ r.id }}/approve" data-admin-name="{{ r.company_name }}">Approve</button>
+                <button class="btn btn-ghost btn-sm" data-admin-action="/api/v1/admin/recruiters/{{ r.id }}/reject" data-admin-name="{{ r.company_name }}">Reject</button>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state" style="padding:32px;"><div class="es-icon">✅</div><h3>All caught up</h3><p>No recruiters waiting for approval.</p></div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Pending opportunity approvals</h3><a class="link-btn small" href="{{ url_for('admin.opportunities_page') }}">Manage</a></div>
+      {% if pending_opportunities %}
+        {% for opp in pending_opportunities %}
+          <div style="padding:14px 22px; border-bottom:1px solid var(--line-soft);">
+            <div class="flex-between">
+              <div>
+                <strong style="color:var(--ink);">{{ opp.title }}</strong>
+                <div class="small muted">{{ opp.company_name }} · {{ opp.type | replace('_', ' ') | title }} · deadline {{ opp.application_deadline | date }}</div>
+              </div>
+              <div class="flex" style="gap:8px;">
+                <button class="btn btn-success btn-sm" data-admin-action="/api/v1/admin/opportunities/{{ opp.id }}/approve" data-admin-name="{{ opp.title }}">Approve</button>
+                <button class="btn btn-ghost btn-sm" data-admin-action="/api/v1/admin/opportunities/{{ opp.id }}/reject" data-admin-name="{{ opp.title }}">Reject</button>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state" style="padding:32px;"><div class="es-icon">✅</div><h3>All caught up</h3><p>No postings waiting for approval.</p></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card mt-3">
+    <div class="card-header"><h3>Recent application activity</h3><a class="link-btn small" href="{{ url_for('admin.applications_page') }}">View all</a></div>
+    {% if recent_applications %}
+      <div class="table-wrap">
+        <table class="table">
+          <tbody>
+            {% for app in recent_applications %}
+              <tr>
+                <td><div class="row-title">{{ app.student.full_name }}</div><div class="row-sub">{{ app.student.department or '—' }} · {{ app.student.graduation_year or '—' }}</div></td>
+                <td><div class="row-title">{{ app.opportunity.title }}</div><div class="row-sub">{{ app.opportunity.company_name }}</div></td>
+                <td class="small">{{ app.applied_at | date }}</td>
+                <td>{{ m.badge(app.status) }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state" style="padding:32px;"><div class="es-icon">📥</div><h3>No applications yet</h3></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

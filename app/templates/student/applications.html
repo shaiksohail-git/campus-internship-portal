@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% import "macros.html" as m with context %}
+{% block title %}My applications — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">My applications</h1>
+      <p class="page-sub">Track every application from “Applied” to “Selected”.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    {% if applications %}
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Opportunity</th>
+              <th>Company</th>
+              <th>Applied on</th>
+              <th>Status</th>
+              <th>Interview</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for app in applications %}
+              <tr>
+                <td>
+                  <div class="row-title">{{ app.opportunity.title }}</div>
+                  <div class="row-sub">{{ 'Internship' if app.opportunity.type == 'INTERNSHIP' else 'Full-time' }}</div>
+                </td>
+                <td>{{ app.opportunity.company_name }}</td>
+                <td class="small">{{ app.applied_at | date }}</td>
+                <td>{{ m.badge(app.status) }}</td>
+                <td>
+                  {% if app.active_interview %}
+                    <div class="small">
+                      <strong>{{ app.active_interview.scheduled_date | date }}</strong>
+                      · {{ app.active_interview.scheduled_time | time }}
+                      <div class="row-sub">{{ app.active_interview.mode | title }}{% if app.active_interview.meeting_details %} · {{ app.active_interview.meeting_details }}{% endif %}</div>
+                    </div>
+                  {% else %}
+                    <span class="muted small">—</span>
+                  {% endif %}
+                </td>
+                <td class="text-right">
+                  <a class="link-btn small" href="{{ url_for('students.opportunity_detail_page', opportunity_id=app.opportunity_id) }}">View opportunity</a>
+                  {% if app.offer_letter and app.offer_letter.sent_at %}
+                    · <button class="link-btn small" style="color:var(--success);" data-view-offer="{{ app.id }}">✉ View offer letter</button>
+                    · <a class="link-btn small" style="color:var(--success);" href="/api/v1/student/applications/{{ app.id }}/offer-letter/download">⬇ Download PDF</a>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {{ m.pagination(pagination) }}
+    {% else %}
+      <div class="empty-state">
+        <div class="es-icon">📝</div>
+        <h3>No applications yet</h3>
+        <p>Browse opportunities and submit your first application.</p>
+        <a class="btn btn-primary btn-sm" href="{{ url_for('students.opportunities_page') }}">Browse opportunities</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="modal-backdrop" id="offerViewModal" hidden>
+  <div class="modal modal-lg" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h3 id="offerViewTitle">Offer letter</h3>
+      <button class="icon-btn" id="offerViewClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="offerViewContent" style="white-space:pre-line; line-height:1.7; color:var(--ink);">
+        Loading…
+      </div>
+      <div class="divider"></div>
+      <div class="grid grid-2" style="gap:10px;">
+        <div><div class="small muted">Salary / stipend</div><strong id="offerViewSalary" style="color:var(--success);">—</strong></div>
+        <div><div class="small muted">Joining date</div><strong id="offerViewJoinDate">—</strong></div>
+        <div><div class="small muted">Sent on</div><strong id="offerViewSentAt">—</strong></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="offerViewCloseBtn">Close</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  (function () {
+    const modal = document.getElementById("offerViewModal");
+    const titleEl = document.getElementById("offerViewTitle");
+    const contentEl = document.getElementById("offerViewContent");
+    const salaryEl = document.getElementById("offerViewSalary");
+    const joinDateEl = document.getElementById("offerViewJoinDate");
+    const sentAtEl = document.getElementById("offerViewSentAt");
+
+    function closeModal() {
+      modal.hidden = true;
+      document.body.style.overflow = "";
+    }
+
+    document.getElementById("offerViewClose").addEventListener("click", closeModal);
+    document.getElementById("offerViewCloseBtn").addEventListener("click", closeModal);
+    modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+    document.querySelectorAll("[data-view-offer]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const appId = btn.dataset.viewOffer;
+        contentEl.textContent = "Loading…";
+        titleEl.textContent = "Offer letter";
+        salaryEl.textContent = "—";
+        joinDateEl.textContent = "—";
+        sentAtEl.textContent = "—";
+        modal.hidden = false;
+        document.body.style.overflow = "hidden";
+        try {
+          const res = await api(`/api/v1/student/applications/${appId}/offer-letter`);
+          const offer = res.data.offer_letter;
+          titleEl.textContent = offer.title || "Offer letter";
+          contentEl.textContent = offer.body || "(No content)";
+          salaryEl.textContent = offer.salary_or_stipend || "—";
+          joinDateEl.textContent = offer.joining_date || "—";
+          sentAtEl.textContent = offer.sent_at ? new Date(offer.sent_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+        } catch (err) {
+          contentEl.textContent = err.message || "Could not load offer letter.";
+        }
+      });
+    });
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% import "macros.html" as m with context %}
+{% block title %}Recruiters — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Recruiters</h1>
+      <p class="page-sub">Verify companies before they can publish opportunities.</p>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <a class="tab {{ 'active' if not current_status }}" href="{{ url_for('admin.recruiters_page') }}">All</a>
+    <a class="tab {{ 'active' if current_status == 'PENDING' }}" href="{{ url_for('admin.recruiters_page', status='PENDING') }}">Pending <span class="count">{{ pagination.total if current_status == 'PENDING' else '' }}</span></a>
+    <a class="tab {{ 'active' if current_status == 'APPROVED' }}" href="{{ url_for('admin.recruiters_page', status='APPROVED') }}">Approved</a>
+    <a class="tab {{ 'active' if current_status == 'REJECTED' }}" href="{{ url_for('admin.recruiters_page', status='REJECTED') }}">Rejected</a>
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>Company</th><th>Contact</th><th>Registered</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for r in recruiters %}
+            <tr>
+              <td>
+                <div class="row-title">{{ r.company_name }}</div>
+                <div class="row-sub">{{ r.company_email or r.user.email }}</div>
+              </td>
+              <td>
+                <div class="small">{{ r.contact_person or '—' }}</div>
+                <div class="row-sub">{{ r.contact_phone or '' }}</div>
+              </td>
+              <td class="small">{{ r.created_at | date }}</td>
+              <td>
+                {% if r.approval_status == 'APPROVED' %}<span class="badge badge-APPROVED"><span class="dot"></span>Approved</span>
+                {% elif r.approval_status == 'REJECTED' %}<span class="badge badge-REJECTED"><span class="dot"></span>Rejected</span>
+                {% else %}<span class="badge badge-PENDING"><span class="dot"></span>Pending</span>{% endif %}
+              </td>
+              <td class="text-right">
+                {% if r.approval_status != 'APPROVED' %}
+                  <button class="btn btn-success btn-sm" data-admin-action="/api/v1/admin/recruiters/{{ r.id }}/approve" data-admin-name="{{ r.company_name }}">Approve</button>
+                {% endif %}
+                {% if r.approval_status != 'REJECTED' %}
+                  <button class="btn btn-ghost btn-sm" data-admin-action="/api/v1/admin/recruiters/{{ r.id }}/reject" data-admin-name="{{ r.company_name }}">Reject</button>
+                {% endif %}
+                {% if not r.user.is_active %}
+                  <button class="link-btn small" data-user-action="/api/v1/admin/users/{{ r.user.id }}/reactivate">Reactivate</button>
+                {% else %}
+                  <button class="link-btn small danger" data-user-action="/api/v1/admin/users/{{ r.user.id }}/suspend">Suspend</button>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {{ m.pagination(pagination) }}
+  </div>
+</div>
+{% endblock %}

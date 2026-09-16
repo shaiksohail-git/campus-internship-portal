@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% import "macros.html" as m with context %}
+{% block title %}Announcements — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Announcements</h1>
+      <p class="page-sub">Publish announcements to students, recruiters, or both.</p>
+    </div>
+    <a class="btn btn-primary" href="{{ url_for('admin.announcement_new_page') }}">+ New announcement</a>
+  </div>
+
+  <div class="card">
+    {% if announcements %}
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Audience</th>
+              <th>Status</th>
+              <th>Published</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ann in announcements %}
+              <tr>
+                <td>
+                  <div class="row-title">{{ ann.title }}</div>
+                  <div class="row-sub">{{ ann.body[:80] }}{% if ann.body | length > 80 %}...{% endif %}</div>
+                </td>
+                <td>
+                  {% if ann.audience == 'ALL' %}
+                    <span class="chip">Students & Recruiters</span>
+                  {% elif ann.audience == 'STUDENT' %}
+                    <span class="chip" style="background:var(--primary-tint); color:var(--primary);">Students</span>
+                  {% else %}
+                    <span class="chip" style="background:var(--success-tint); color:var(--success);">Recruiters</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if ann.is_published %}
+                    <span class="chip" style="background:var(--success-tint); color:var(--success);">Published</span>
+                  {% else %}
+                    <span class="chip chip-outline">Draft</span>
+                  {% endif %}
+                </td>
+                <td class="small">{{ ann.created_at | datetime }}</td>
+                <td class="text-right">
+                  <a class="link-btn small" href="{{ url_for('admin.announcement_edit_page', announcement_id=ann.id) }}">Edit</a>
+                  &middot;
+                  <button class="link-btn small" style="color:var(--danger);" data-delete-announcement="{{ ann.id }}" data-delete-announcement-name="{{ ann.title }}">Delete</button>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {{ m.pagination(pagination) }}
+    {% else %}
+      <div class="empty-state">
+        <div class="es-icon">📢</div>
+        <h3>No announcements yet</h3>
+        <p>Publish your first announcement to reach students and recruiters.</p>
+        <a class="btn btn-primary btn-sm" href="{{ url_for('admin.announcement_new_page') }}">Create announcement</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  document.querySelectorAll("[data-delete-announcement]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var id = btn.dataset.deleteAnnouncement;
+      var name = btn.dataset.deleteAnnouncementName;
+      confirmDialog({
+        title: "Delete announcement?",
+        message: "\"" + name + "\" will be permanently deleted.",
+        confirmText: "Delete",
+        danger: true,
+        onConfirm: async function () {
+          try {
+            var res = await api("/api/v1/admin/announcements/" + id, { method: "DELETE" });
+            toast(res.message, "success");
+            setTimeout(function () { window.location.reload(); }, 700);
+          } catch (err) {
+            toast(err.message, "error");
+          }
+        },
+      });
+    });
+  });
+})();
+</script>
+{% endblock %}

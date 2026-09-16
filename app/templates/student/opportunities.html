@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% import "macros.html" as m with context %}
+{% block title %}Opportunities — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Opportunities</h1>
+      <p class="page-sub">Internships and full-time roles from approved companies.</p>
+    </div>
+  </div>
+
+  <form class="card filter-bar mb-3" method="get" id="filterForm">
+    <div class="search-box">
+      <span class="search-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
+      <input class="input" type="search" name="search" placeholder="Search title, company, skills…" value="{{ filters.search }}">
+    </div>
+    <select class="input" name="type">
+      <option value="">All types</option>
+      <option value="INTERNSHIP" {{ 'selected' if filters.type == 'INTERNSHIP' }}>Internship</option>
+      <option value="FULL_TIME" {{ 'selected' if filters.type == 'FULL_TIME' }}>Full-time</option>
+    </select>
+    <select class="input" name="work_mode">
+      <option value="">Any work mode</option>
+      <option value="ON_SITE" {{ 'selected' if filters.work_mode == 'ON_SITE' }}>On-site</option>
+      <option value="REMOTE" {{ 'selected' if filters.work_mode == 'REMOTE' }}>Remote</option>
+      <option value="HYBRID" {{ 'selected' if filters.work_mode == 'HYBRID' }}>Hybrid</option>
+    </select>
+    <input class="input" type="text" name="location" placeholder="Location" value="{{ filters.location }}">
+    <input class="input" type="text" name="skill" placeholder="Skill (e.g. Python)" value="{{ filters.skill }}">
+    <button class="btn btn-ghost" type="submit">Apply</button>
+    {% if filters.search or filters.type or filters.work_mode or filters.location or filters.skill %}
+      <a class="link-btn small" href="{{ url_for('students.opportunities_page') }}">Clear</a>
+    {% endif %}
+  </form>
+
+  {% if opportunities %}
+    <div class="grid grid-3">
+      {% for opp in opportunities %}
+        <article class="card card-hover opp-card">
+          <div class="opp-top">
+            <div class="opp-logo">{{ opp.company_name[:1] | upper }}</div>
+            <span class="chip">{{ 'Internship' if opp.type == 'INTERNSHIP' else 'Full-time' }}</span>
+          </div>
+          <h3 class="opp-title"><a href="{{ url_for('students.opportunity_detail_page', opportunity_id=opp.id) }}">{{ opp.title }}</a></h3>
+          <div class="opp-company">{{ opp.company_name }}</div>
+          <div class="opp-meta">
+            <span class="meta-pill">📍 {{ opp.location or '—' }}</span>
+            <span class="meta-pill">{{ opp.work_mode | replace('_', ' ') | title }}</span>
+            <span class="meta-pill">📅 {{ opp.application_deadline | date }}</span>
+          </div>
+          <div class="opp-skills">
+            {% for s in (opp.required_skills or '').split(',')[:4] %}
+              <span class="skill-pill">{{ s.strip()[:24] }}</span>
+            {% endfor %}
+          </div>
+          <div class="opp-foot">
+            <span class="opp-salary">{{ opp.salary_or_stipend or 'Stipend TBD' }}</span>
+            {% if opp.id in applied_ids %}
+              <span class="chip">✓ Applied</span>
+            {% else %}
+              <button class="btn btn-primary btn-sm" data-apply="{{ opp.id }}">Apply now</button>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+    {{ m.pagination(pagination) }}
+  {% else %}
+    <div class="card">
+      {% call m.empty('No opportunities found', 'Try adjusting your search or filters — new postings appear as they are approved.', '🔍') %}
+        <a class="btn btn-secondary btn-sm" href="{{ url_for('students.opportunities_page') }}">Clear filters</a>
+      {% endcall %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

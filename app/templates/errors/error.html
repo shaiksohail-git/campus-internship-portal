@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}{{ error.code if error.code else 'Error' }} — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container" style="display:flex; justify-content:center; padding: 60px 0;">
+  <div class="card card-pad text-center" style="max-width: 480px; width:100%; padding:44px 34px;">
+    <div style="font-size:52px;">{% if error.code and error.code == 403 %}🔒{% elif error.code and error.code == 404 %}🔍{% else %}😵{% endif %}</div>
+    <h1 class="page-title mt-2">{{ error.code or 500 }}</h1>
+    <p class="muted mt-1 mb-3">{{ error.description if error.description is defined and error.description else (error.message if error.message is defined else 'Something went wrong.') }}</p>
+    <a class="btn btn-primary" href="/">Back to home</a>
+  </div>
+</div>
+{% endblock %}

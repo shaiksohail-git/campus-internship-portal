@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% import "macros.html" as m with context %}
+{% block title %}{{ 'Edit' if opportunity else 'New' }} opportunity — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container" style="max-width: 820px;">
+  <a class="link-btn small" href="{{ url_for('recruiters.opportunities_page') }}">← My opportunities</a>
+  <div class="page-header mt-1">
+    <div>
+      <h1 class="page-title">{{ 'Edit opportunity' if opportunity else 'New opportunity' }}</h1>
+      <p class="page-sub">Fill in the details below — you can save as a draft and submit for admin review anytime.</p>
+    </div>
+    {% if opportunity %}
+      {{ m.badge(opportunity.status) }}
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <form id="oppForm" novalidate>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Title <span class="req">*</span></label>
+            <input class="input" id="f_title" value="{{ opportunity.title if opportunity else '' }}" placeholder="e.g. Software Engineering Intern" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Type <span class="req">*</span></label>
+            <select class="input" id="f_type" required>
+              <option value="INTERNSHIP" {{ 'selected' if opportunity and opportunity.type == 'INTERNSHIP' }}>Internship</option>
+              <option value="FULL_TIME" {{ 'selected' if opportunity and opportunity.type == 'FULL_TIME' }}>Full-time</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Location</label>
+            <input class="input" id="f_location" value="{{ opportunity.location if opportunity else '' }}" placeholder="Bengaluru / Remote">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Work mode</label>
+            <select class="input" id="f_work_mode">
+              <option value="ON_SITE" {{ 'selected' if opportunity and opportunity.work_mode == 'ON_SITE' }}>On-site</option>
+              <option value="REMOTE" {{ 'selected' if opportunity and opportunity.work_mode == 'REMOTE' }}>Remote</option>
+              <option value="HYBRID" {{ 'selected' if opportunity and opportunity.work_mode == 'HYBRID' }}>Hybrid</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Salary / stipend</label>
+            <input class="input" id="f_salary" value="{{ opportunity.salary_or_stipend if opportunity else '' }}" placeholder="₹30,000 / month or ₹12 LPA">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Application deadline <span class="req">*</span></label>
+            <input class="input" type="date" id="f_deadline" value="{{ opportunity.application_deadline.isoformat() if opportunity and opportunity.application_deadline else '' }}" required>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">Description <span class="req">*</span></label>
+            <textarea class="input" id="f_description" rows="4" placeholder="What will the candidate work on?" required>{{ opportunity.description if opportunity else '' }}</textarea>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">Responsibilities</label>
+            <textarea class="input" id="f_responsibilities" rows="3" placeholder="One responsibility per line">{{ opportunity.responsibilities if opportunity else '' }}</textarea>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">Required skills <span class="req">*</span></label>
+            <input class="input" id="f_skills" value="{{ opportunity.required_skills if opportunity else '' }}" placeholder="Python, SQL, Django" required>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">Eligibility <span class="req">*</span></label>
+            <textarea class="input" id="f_eligibility" rows="3" placeholder="e.g. B.Tech CSE/IT/ECE, graduating 2026 or 2027" required>{{ opportunity.eligibility if opportunity else '' }}</textarea>
+            <span class="form-hint">Tip: include the graduation batch year(s) — e.g. “2026” — so the eligibility check works automatically.</span>
+          </div>
+        </div>
+
+        <div class="flex mt-3" style="gap:12px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-secondary" id="saveDraftBtn">Save as draft</button>
+          <button type="button" class="btn btn-primary" id="saveSubmitBtn">Save &amp; submit for review</button>
+          {% if opportunity and opportunity.status == 'REJECTED' %}
+            <span class="alert alert-error" style="padding:10px 14px;">This posting was rejected — make changes and resubmit.</span>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  (function () {
+    const form = document.getElementById("oppForm");
+    {% if opportunity %}
+      const URL = "/api/v1/recruiter/opportunities/{{ opportunity.id }}";
+      const METHOD = "PUT";
+    {% else %}
+      const URL = "/api/v1/recruiter/opportunities";
+      const METHOD = "POST";
+    {% endif %}
+
+    function payload() {
+      return {
+        title: document.getElementById("f_title").value,
+        type: document.getElementById("f_type").value,
+        location: document.getElementById("f_location").value,
+        work_mode: document.getElementById("f_work_mode").value,
+        salary_or_stipend: document.getElementById("f_salary").value,
+        application_deadline: document.getElementById("f_deadline").value,
+        description: document.getElementById("f_description").value,
+        responsibilities: document.getElementById("f_responsibilities").value,
+        required_skills: document.getElementById("f_skills").value,
+        eligibility: document.getElementById("f_eligibility").value,
+      };
+    }
+
+    async function save(submit) {
+      const btn = submit ? document.getElementById("saveSubmitBtn") : document.getElementById("saveDraftBtn");
+      btn.disabled = true; btn.textContent = "Saving…";
+      try {
+        let res;
+        if (METHOD === "PUT") {
+          res = await api(URL, { method: "PUT", json: payload() });
+        } else {
+          res = await api(URL, { method: "POST", json: payload() });
+        }
+        const oppId = res.data.opportunity.id;
+        if (submit) {
+          const r2 = await api(`/api/v1/recruiter/opportunities/${oppId}/submit`, { method: "POST" });
+          toast(r2.message, "success");
+        } else {
+          toast(res.message, "success");
+        }
+        setTimeout(() => (window.location.href = `/recruiter/opportunities/${oppId}`), 700);
+      } catch (err) {
+        toast(err.message, "error");
+        btn.disabled = false; btn.textContent = submit ? "Save & submit for review" : "Save as draft";
+      }
+    }
+
+    document.getElementById("saveDraftBtn").addEventListener("click", () => save(false));
+    document.getElementById("saveSubmitBtn").addEventListener("click", () => save(true));
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-page">
+  <div class="auth-visual">
+    <div class="av-brand"><span class="brand-mark">🎓</span> Campus<span style="color:#a5b4fc;">Place</span></div>
+    <div>
+      <h2>One portal for the entire placement journey.</h2>
+      <p>Register, apply, track, interview, select — with the placement office overseeing every step.</p>
+      <div class="auth-quotes">
+        <div class="auth-quote">
+          <div class="aq-text">“I applied to 6 companies in a single afternoon and tracked every status from one dashboard.”</div>
+          <div class="aq-by">— Final-year student</div>
+        </div>
+        <div class="auth-quote">
+          <div class="aq-text">“Approved in a day, published our internship, reviewed 80 applicants — all on one platform.”</div>
+          <div class="aq-by">— Company recruiter</div>
+        </div>
+      </div>
+    </div>
+    <div class="muted" style="color:rgba(255,255,255,0.55); font-size:12.5px;">Campus Internship &amp; Placement Portal · V1</div>
+  </div>
+  <div class="auth-main">
+    <div class="auth-card">
+      <a class="auth-back" href="/">← Back to home</a>
+      {% block auth_content %}{% endblock %}
+    </div>
+  </div>
+  <div class="toast-stack" id="toastStack"></div>
+  <div class="flash-stack" id="flashStack">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="toast toast-{{ category if category in ('success','error','warning','info') else 'info' }}" data-auto-dismiss>
+          <span>{{ message }}</span><button class="toast-close">&times;</button>
+        </div>
+      {% endfor %}
+    {% endwith %}
+  </div>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

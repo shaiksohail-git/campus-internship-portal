@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% import "macros.html" as m with context %}
+{% block title %}Interviews — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Interviews</h1>
+      <p class="page-sub">All scheduled interviews across the portal.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>Student</th><th>Company</th><th>Opportunity</th><th>Schedule</th><th>Mode</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          {% for iv in interviews %}
+            <tr>
+              <td>
+                <div class="row-title">{{ iv.application.student.full_name }}</div>
+                <div class="row-sub">{{ iv.application.student.college.name if iv.application.student.college else '—' }}</div>
+              </td>
+              <td>{{ iv.application.opportunity.company_name }}</td>
+              <td>{{ iv.application.opportunity.title }}</td>
+              <td class="small">{{ iv.scheduled_date | date }} · {{ iv.scheduled_time | time }}</td>
+              <td><span class="chip chip-outline">{{ iv.mode | title }}</span></td>
+              <td>{{ m.badge(iv.status) }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {{ m.pagination(pagination) }}
+  </div>
+</div>
+{% endblock %}

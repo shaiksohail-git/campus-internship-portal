@@ -1,0 +1,54 @@
+{% extends "auth/auth_base.html" %}
+{% block title %}Company registration — {{ app_name }}{% endblock %}
+{% block auth_content %}
+<h1 class="auth-title">Register your company</h1>
+<p class="auth-sub">Submit your company details — the placement office will review and approve your account.</p>
+
+<form data-api="/api/v1/auth/register/recruiter" method="post" novalidate>
+  <div class="form-grid">
+    <div class="form-group">
+      <label class="form-label" for="company_name">Company name <span class="req">*</span></label>
+      <input class="input" type="text" id="company_name" name="company_name" placeholder="TechCorp Solutions" required>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="email">Account email <span class="req">*</span></label>
+      <input class="input" type="email" id="email" name="email" placeholder="recruiter@company.com" required autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="company_email">Company email</label>
+      <input class="input" type="email" id="company_email" name="company_email" placeholder="hr@company.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="website">Website</label>
+      <input class="input" type="url" id="website" name="website" placeholder="https://company.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="contact_person">Contact person</label>
+      <input class="input" type="text" id="contact_person" name="contact_person" placeholder="Hiring Manager">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="contact_phone">Contact phone</label>
+      <input class="input" type="tel" id="contact_phone" name="contact_phone" placeholder="+91 90000 12345">
+    </div>
+    <div class="form-group full">
+      <label class="form-label" for="company_description">Company description <span class="req">*</span></label>
+      <textarea class="input" id="company_description" name="company_description" rows="3" placeholder="What does your company do?" required></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="password">Password <span class="req">*</span></label>
+      <input class="input" type="password" id="password" name="password" placeholder="Min. 8 characters" required autocomplete="new-password" data-pw-meter="#pwMeter2">
+      <div class="pw-meter" id="pwMeter2"><i></i></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="password_confirm">Confirm password <span class="req">*</span></label>
+      <input class="input" type="password" id="password_confirm" name="password_confirm" placeholder="Repeat password" required autocomplete="new-password">
+    </div>
+  </div>
+  <div class="alert alert-info mt-2">
+    💡 After registering you'll verify your email, then the placement office must approve your company before you can publish opportunities.
+  </div>
+  <button type="submit" class="btn btn-primary btn-block btn-lg mt-3">Create company account</button>
+</form>
+
+<div class="auth-switch">Are you a student? <a href="{{ url_for('auth.register_student_page') }}">Register here</a> · <a href="{{ url_for('auth.login_page') }}">Log in</a></div>
+{% endblock %}

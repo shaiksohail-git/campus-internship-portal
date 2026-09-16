@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Flask instance (sqlite db, uploads)
+instance/
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Runtime logs
+server.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

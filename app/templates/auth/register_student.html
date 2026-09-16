@@ -1,0 +1,67 @@
+{% extends "auth/auth_base.html" %}
+{% block title %}Student registration — {{ app_name }}{% endblock %}
+{% block auth_content %}
+<h1 class="auth-title">Create a student account</h1>
+<p class="auth-sub">Find internships &amp; jobs, apply with your profile, and track everything.</p>
+
+<form data-api="/api/v1/auth/register/student" method="post" novalidate>
+  <div class="form-grid">
+    <div class="form-group">
+      <label class="form-label" for="full_name">Full name <span class="req">*</span></label>
+      <input class="input" type="text" id="full_name" name="full_name" placeholder="Aarav Sharma" required>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="email">Email <span class="req">*</span></label>
+      <input class="input" type="email" id="email" name="email" placeholder="you@college.edu" required autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="phone">Phone</label>
+      <input class="input" type="tel" id="phone" name="phone" placeholder="+91 98765 43210">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="college">College / university</label>
+      <input class="input" type="text" id="college" name="college" placeholder="State Institute of Technology" list="collegeList">
+      <datalist id="collegeList">
+        {% for c in colleges %}<option value="{{ c.name }}">{% endfor %}
+      </datalist>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="degree">Degree <span class="req">*</span></label>
+      <select class="input" id="degree" name="degree" required>
+        <option value="">Select degree</option>
+        <option>B.Tech</option><option>B.E.</option><option>M.Tech</option><option>M.Sc</option>
+        <option>B.Sc</option><option>MBA</option><option>BCA</option><option>MCA</option><option>Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="department">Department <span class="req">*</span></label>
+      <select class="input" id="department" name="department" required>
+        <option value="">Select department</option>
+        <option>Computer Science</option><option>Information Technology</option><option>Electronics</option>
+        <option>Electrical</option><option>Mechanical</option><option>Civil</option><option>Data Science</option>
+        <option>Artificial Intelligence</option><option>Management</option><option>Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="graduation_year">Graduation year <span class="req">*</span></label>
+      <input class="input" type="number" id="graduation_year" name="graduation_year" placeholder="2026" min="2020" max="2032" required>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="skills">Skills (comma separated)</label>
+      <input class="input" type="text" id="skills" name="skills" placeholder="Python, SQL, Django">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="password">Password <span class="req">*</span></label>
+      <input class="input" type="password" id="password" name="password" placeholder="Min. 8 characters" required autocomplete="new-password" data-pw-meter="#pwMeter1">
+      <div class="pw-meter" id="pwMeter1"><i></i></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="password_confirm">Confirm password <span class="req">*</span></label>
+      <input class="input" type="password" id="password_confirm" name="password_confirm" placeholder="Repeat password" required autocomplete="new-password">
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary btn-block btn-lg mt-3">Create account</button>
+</form>
+
+<div class="auth-switch">Already registered? <a href="{{ url_for('auth.login_page') }}">Log in</a> · <a href="{{ url_for('auth.register_recruiter_page') }}">Register a company</a></div>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% import "macros.html" as m with context %}
+{% block title %}{{ opportunity.title }} — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <a class="link-btn small" href="{{ url_for('students.opportunities_page') }}">← All opportunities</a>
+
+  <div class="grid grid-2 mt-2" style="align-items:start; grid-template-columns: 1.5fr 1fr;">
+    <div>
+      <div class="card card-pad">
+        <div class="flex-between flex-wrap">
+          <div class="flex" style="gap:14px;">
+            <div class="opp-logo" style="width:54px; height:54px; font-size:20px;">{{ opportunity.company_name[:1] | upper }}</div>
+            <div>
+              <h1 style="font-size:22px;">{{ opportunity.title }}</h1>
+              <div style="color:var(--body); font-weight:500;">{{ opportunity.company_name }}</div>
+            </div>
+          </div>
+          <span class="chip">{{ 'Internship' if opportunity.type == 'INTERNSHIP' else 'Full-time' }}</span>
+        </div>
+
+        <div class="flex flex-wrap mt-2" style="gap:8px;">
+          <span class="meta-pill">📍 {{ opportunity.location or '—' }}</span>
+          <span class="meta-pill">{{ opportunity.work_mode | replace('_', ' ') | title }}</span>
+          <span class="meta-pill">💸 {{ opportunity.salary_or_stipend or 'Stipend TBD' }}</span>
+          <span class="meta-pill">📅 Apply by {{ opportunity.application_deadline | date }}</span>
+          <span class="meta-pill">🗓 Posted {{ opportunity.published_at | date }}</span>
+        </div>
+
+        <div class="divider"></div>
+        <h3 style="font-size:15px;" class="mb-1">About the role</h3>
+        <p style="white-space:pre-line;">{{ opportunity.description }}</p>
+
+        {% if opportunity.responsibilities %}
+          <h3 style="font-size:15px;" class="mt-3 mb-1">Responsibilities</h3>
+          <ul style="padding-left:18px; display:grid; gap:4px;">
+            {% for line in opportunity.responsibilities.split('\n') if line.strip() %}
+              <li style="font-size:14px;">{{ line }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+
+        <h3 style="font-size:15px;" class="mt-3 mb-1">Required skills</h3>
+        <div class="opp-skills">
+          {% for s in (opportunity.required_skills or '').split(',') %}
+            {% if s.strip() %}<span class="skill-pill">{{ s.strip() }}</span>{% endif %}
+          {% endfor %}
+        </div>
+
+        {% if opportunity.eligibility %}
+          <h3 style="font-size:15px;" class="mt-3 mb-1">Eligibility</h3>
+          <p style="white-space:pre-line;" class="small">{{ opportunity.eligibility }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div style="position:sticky; top:84px;">
+      {% if my_application %}
+        <div class="card card-pad mb-2">
+          <div class="flex-between">
+            <div>
+              <div class="small" style="font-weight:600; color:var(--ink-2);">Your application</div>
+              <div class="mt-1">{{ m.badge(my_application.status) }}</div>
+            </div>
+            <a class="btn btn-ghost btn-sm" href="{{ url_for('students.applications_page') }}">Track</a>
+          </div>
+          <p class="small muted mt-2">Applied on {{ my_application.applied_at | date }}</p>
+        </div>
+      {% elif deadline_passed %}
+        <div class="alert alert-warning mb-2">⏰ The application deadline has passed.</div>
+      {% elif opportunity.status == 'CLOSED' %}
+        <div class="alert alert-warning mb-2">🔒 This opportunity is no longer accepting applications.</div>
+      {% else %}
+        <div class="card card-pad mb-2">
+          <div class="flex-between mb-2">
+            <h3 style="font-size:15px;">Ready to apply?</h3>
+            <span class="availability-badge av-open">● Accepting applications</span>
+          </div>
+          {% if eligibility_issues %}
+            <div class="alert alert-error mb-2">⚠️ {{ eligibility_issues[0] }}</div>
+          {% endif %}
+          <button class="btn btn-primary btn-block btn-lg" data-apply="{{ opportunity.id }}" {% if eligibility_issues %}disabled{% endif %}>Apply now</button>
+          <p class="small muted mt-2" style="text-align:center;">Deadline: {{ opportunity.application_deadline | date }}</p>
+        </div>
+      {% endif %}
+
+      {% if resumes and not my_application and not deadline_passed and not eligibility_issues %}
+        <div class="card card-pad">
+          <div class="small" style="font-weight:600; color:var(--ink-2); margin-bottom:10px;">Your resumes</div>
+          {% for r in resumes %}
+            <div class="flex" style="gap:8px; padding:8px 0; border-bottom:1px solid var(--line-soft);">
+              <span>📄</span><span class="grow small">{{ r.file_name }}</span>
+              <span class="chip chip-outline" style="font-size:11px;">{{ r.file_size | filesize }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

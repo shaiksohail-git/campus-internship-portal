@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% import "macros.html" as m with context %}
+{% block title %}Interviews — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Interviews</h1>
+      <p class="page-sub">All scheduled interviews across your opportunities.</p>
+    </div>
+  </div>
+
+  <h3 style="font-size:16px;" class="mb-2">Upcoming</h3>
+  {% if upcoming %}
+    <div class="grid grid-2 mb-3">
+      {% for iv in upcoming %}
+        <div class="card card-pad card-hover">
+          <div class="flex-between flex-wrap">
+            <div>
+              <div style="font-weight:700; color:var(--ink);">{{ iv.application.student.full_name }}</div>
+              <div class="small muted">{{ iv.application.opportunity.title }}</div>
+            </div>
+            {{ m.badge(iv.status) }}
+          </div>
+          <div class="mt-2">{{ m.interview_meta(iv) }}</div>
+          <div class="mt-2 flex" style="gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-success btn-sm" data-interview-action="/api/v1/recruiter/interviews/{{ iv.id }}/complete" data-interview-label="{{ iv.application.student.full_name }}">Mark completed</button>
+            <button class="btn btn-ghost btn-sm" data-interview-action="/api/v1/recruiter/interviews/{{ iv.id }}/cancel" data-interview-label="{{ iv.application.student.full_name }}">Cancel</button>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card mb-3"><div class="empty-state"><div class="es-icon">🎤</div><h3>No upcoming interviews</h3><p>Schedule interviews for shortlisted candidates from the applicants page.</p></div></div>
+  {% endif %}
+
+  {% if past %}
+    <h3 style="font-size:16px;" class="mb-2 mt-4">Past</h3>
+    <div class="card">
+      <div class="table-wrap">
+        <table class="table">
+          <tbody>
+            {% for iv in past %}
+              <tr>
+                <td><div class="row-title">{{ iv.application.student.full_name }}</div><div class="row-sub">{{ iv.application.opportunity.title }}</div></td>
+                <td class="small">{{ iv.scheduled_date | date }} · {{ iv.scheduled_time | time }}</td>
+                <td>{{ m.badge(iv.status) }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

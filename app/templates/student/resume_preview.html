@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume preview — {{ app_name }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; background: #f1f5f9; }
+    .preview-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 20px; background: #fff; border-bottom: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06); z-index: 10; position: relative;
+    }
+    .preview-toolbar h1 { font-size: 14px; font-weight: 600; color: #334155; }
+    .preview-toolbar .actions { display: flex; gap: 8px; }
+    .preview-toolbar .btn { padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+    .btn-primary { background: #6366f1; color: #fff; }
+    .btn-primary:hover { background: #4f46e5; }
+    .btn-ghost { background: transparent; color: #64748b; border: 1px solid #e2e8f0; }
+    .btn-ghost:hover { background: #f8fafc; color: #334155; }
+    .preview-frame { width: 100%; height: calc(100vh - 52px); border: none; display: block; }
+    .fallback {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      height: calc(100vh - 52px); color: #64748b; gap: 16px; padding: 40px; text-align: center;
+    }
+    .fallback .icon { font-size: 48px; }
+    .fallback h2 { font-size: 18px; color: #334155; font-weight: 600; }
+    .fallback p { font-size: 14px; max-width: 400px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="preview-toolbar">
+    <h1>{{ resume.file_name }}</h1>
+    <div class="actions">
+      <a class="btn btn-ghost" href="{{ url_for('shared.api_download_resume', resume_id=resume.id) }}">
+        ⬇ Download
+      </a>
+      <button class="btn btn-ghost" onclick="window.close()">✕ Close</button>
+    </div>
+  </div>
+
+  {% if resume.file_type == 'pdf' %}
+    <object class="preview-frame" data="{{ url_for('shared.api_preview_resume', resume_id=resume.id) }}" type="application/pdf">
+      <div class="fallback">
+        <div class="icon">📄</div>
+        <h2>PDF preview not available</h2>
+        <p>Your browser could not display the PDF inline. Please download the file instead.</p>
+        <a class="btn btn-primary" href="{{ url_for('shared.api_download_resume', resume_id=resume.id) }}">⬇ Download resume</a>
+      </div>
+    </object>
+  {% else %}
+    <div class="fallback">
+      <div class="icon">📃</div>
+      <h2>Preview not available for this format</h2>
+      <p>Inline preview is only supported for PDF files. Your resume is a {{ resume.file_type|upper }} file. Please download it to view.</p>
+      <a class="btn btn-primary" href="{{ url_for('shared.api_download_resume', resume_id=resume.id) }}">⬇ Download resume</a>
+    </div>
+  {% endif %}
+</body>
+</html>

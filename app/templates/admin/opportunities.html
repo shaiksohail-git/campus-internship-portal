@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% import "macros.html" as m with context %}
+{% block title %}Opportunities — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Opportunities</h1>
+      <p class="page-sub">Approve, reject or close postings from companies.</p>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <a class="tab {{ 'active' if not current_status }}" href="{{ url_for('admin.opportunities_page') }}">All</a>
+    <a class="tab {{ 'active' if current_status == 'PENDING_REVIEW' }}" href="{{ url_for('admin.opportunities_page', status='PENDING_REVIEW') }}">Pending review</a>
+    <a class="tab {{ 'active' if current_status == 'APPROVED' }}" href="{{ url_for('admin.opportunities_page', status='APPROVED') }}">Live</a>
+    <a class="tab {{ 'active' if current_status == 'DRAFT' }}" href="{{ url_for('admin.opportunities_page', status='DRAFT') }}">Drafts</a>
+    <a class="tab {{ 'active' if current_status == 'REJECTED' }}" href="{{ url_for('admin.opportunities_page', status='REJECTED') }}">Rejected</a>
+    <a class="tab {{ 'active' if current_status == 'CLOSED' }}" href="{{ url_for('admin.opportunities_page', status='CLOSED') }}">Closed</a>
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>Opportunity</th><th>Company</th><th>Type</th><th>Deadline</th><th>Applicants</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for opp in opportunities %}
+            <tr>
+              <td>
+                <div class="row-title">{{ opp.title }}</div>
+                <div class="row-sub">{{ opp.location or '—' }} · {{ opp.work_mode | replace('_', ' ') | title }}</div>
+              </td>
+              <td>{{ opp.company_name }}</td>
+              <td><span class="chip">{{ 'Internship' if opp.type == 'INTERNSHIP' else 'Full-time' }}</span></td>
+              <td class="small">{{ opp.application_deadline | date }}</td>
+              <td><span class="chip chip-outline">{{ opp.applications | length }}</span></td>
+              <td>{{ m.badge(opp.status) }}</td>
+              <td class="text-right">
+                {% if opp.status == 'PENDING_REVIEW' %}
+                  <button class="btn btn-success btn-sm" data-admin-action="/api/v1/admin/opportunities/{{ opp.id }}/approve" data-admin-name="{{ opp.title }}">Approve</button>
+                  <button class="btn btn-ghost btn-sm" data-admin-action="/api/v1/admin/opportunities/{{ opp.id }}/reject" data-admin-name="{{ opp.title }}">Reject</button>
+                {% elif opp.status == 'APPROVED' %}
+                  <button class="btn btn-ghost btn-sm" data-opportunity-action="/api/v1/admin/opportunities/{{ opp.id }}/close" data-opportunity-action-name="{{ opp.title }}">Close</button>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {{ m.pagination(pagination) }}
+  </div>
+</div>
+{% endblock %}

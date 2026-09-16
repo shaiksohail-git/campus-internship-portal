@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% import "macros.html" as m with context %}
+{% block title %}{{ analytics.opportunity.title }} analytics — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <a class="link-btn small" href="{{ url_for('recruiters.analytics_page') }}">← Back to analytics</a>
+
+  {# ── Opportunity header ──────────────────────────────────────────── #}
+  <div class="page-header mt-1">
+    <div class="flex" style="gap:14px; align-items:center; flex-wrap:wrap;">
+      <div class="opp-logo" style="width:50px; height:50px;">{{ analytics.opportunity.company_name[:1] | upper }}</div>
+      <div>
+        <h1 class="page-title">{{ analytics.opportunity.title }}</h1>
+        <p class="page-sub">
+          {{ 'Internship' if analytics.opportunity.type == 'INTERNSHIP' else 'Full-time' }}
+          · {{ analytics.opportunity.location or '—' }}
+          · {{ analytics.opportunity.work_mode | replace('_', ' ') | title if analytics.opportunity.work_mode else '—' }}
+          · {{ m.badge(analytics.opportunity.status) }}
+        </p>
+      </div>
+    </div>
+    <div class="flex" style="gap:8px;">
+      <a class="btn btn-ghost btn-sm" href="{{ url_for('recruiters.opportunity_detail_page', opportunity_id=analytics.opportunity.id) }}">View posting</a>
+    </div>
+  </div>
+
+  {# ── Stat cards ──────────────────────────────────────────────────── #}
+  <div class="grid grid-4 mb-3">
+    {{ m.stat_card(analytics.total, 'Total applicants', '📥', 'stat-ic-amber') }}
+    {{ m.stat_card(analytics.shortlisted, 'Shortlisted', '⭐', 'stat-ic-violet') }}
+    {{ m.stat_card(analytics.selected, 'Selected', '🏆', 'stat-ic-green') }}
+    {{ m.stat_card(analytics.selection_rate ~ '%', 'Selection rate', '📈', 'stat-ic-blue') }}
+  </div>
+
+  <div class="grid grid-3 mb-3">
+    <div class="card stat-card">
+      <div class="stat-icon stat-ic-cyan">🎤</div>
+      <div class="stat-value">{{ analytics.interviewed }}</div>
+      <div class="stat-label">Interviewed / shortlisted</div>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-icon stat-ic-red">❌</div>
+      <div class="stat-value">{{ analytics.rejected }}</div>
+      <div class="stat-label">Rejected</div>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-icon stat-ic-amber">📅</div>
+      <div class="stat-value">{{ analytics.opportunity.application_deadline | date }}</div>
+      <div class="stat-label">Application deadline</div>
+    </div>
+  </div>
+
+  <div class="grid grid-2 mb-3">
+    {# ── College breakdown ────────────────────────────────────────── #}
+    <div class="card">
+      <div class="card-header"><h3>Applicant colleges</h3></div>
+      <div class="card-body">
+        {% if analytics.college_breakdown %}
+          {% set max_c = analytics.college_breakdown | map(attribute='count') | max %}
+          {% for item in analytics.college_breakdown %}
+            <div class="hbar-row">
+              <span class="hbar-label" style="width:150px; font-size:12.5px;">{{ item.name }}</span>
+              <div class="hbar-track"><div class="hbar-fill" style="width: {{ (item.count / max_c * 100) | round(1) }}%;"></div></div>
+              <span class="hbar-value">{{ item.count }}</span>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="muted small">No college data yet.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    {# ── Department breakdown ──────────────────────────────────────── #}
+    <div class="card">
+      <div class="card-header"><h3>Applicant departments</h3></div>
+      <div class="card-body">
+        {% if analytics.dept_breakdown %}
+          {% set max_d = analytics.dept_breakdown.values() | max %}
+          {% for dept, count in analytics.dept_breakdown.items() %}
+            <div class="hbar-row">
+              <span class="hbar-label" style="width:150px; font-size:12.5px;">{{ dept }}</span>
+              <div class="hbar-track"><div class="hbar-fill" style="width: {{ (count / max_d * 100) | round(1) }}%; background: linear-gradient(90deg,#0d9488,#14b8a6);"></div></div>
+              <span class="hbar-value">{{ count }}</span>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="muted small">No department data yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-2 mb-3">
+    {# ── Status funnel ────────────────────────────────────────────── #}
+    <div class="card">
+      <div class="card-header"><h3>Application status funnel</h3></div>
+      <div class="card-body">
+        {% set funnel_order = ['APPLIED', 'SHORTLISTED', 'INTERVIEW_SCHEDULED', 'SELECTED', 'REJECTED'] %}
+        {% set funnel_labels = {'APPLIED': 'Applied', 'SHORTLISTED': 'Shortlisted', 'INTERVIEW_SCHEDULED': 'Interview scheduled', 'SELECTED': 'Selected', 'REJECTED': 'Rejected'} %}
+        {% set funnel_colors = {'APPLIED': 'var(--primary)', 'SHORTLISTED': '#f59e0b', 'INTERVIEW_SCHEDULED': '#06b6d4', 'SELECTED': '#10b981', 'REJECTED': '#ef4444'} %}
+        {% set funnel_max = analytics.status_funnel.values() | max if analytics.status_funnel else 1 %}
+        {% for status in funnel_order %}
+          {% set count = analytics.status_funnel.get(status, 0) %}
+          <div class="hbar-row">
+            <span class="hbar-label" style="width:160px;">{{ funnel_labels.get(status, status) }}</span>
+            <div class="hbar-track">
+              <div class="hbar-fill" style="width: {{ (count / funnel_max * 100) | round(1) if funnel_max else 0 }}%; background: {{ funnel_colors.get(status, 'var(--primary)') }};"></div>
+            </div>
+            <span class="hbar-value">{{ count }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {# ── Graduation year distribution ──────────────────────────────── #}
+    <div class="card">
+      <div class="card-header"><h3>Graduation year distribution</h3></div>
+      <div class="card-body">
+        {% if analytics.year_distribution %}
+          {% set max_y = analytics.year_distribution.values() | max %}
+          {% for year, count in analytics.year_distribution.items() %}
+            <div class="hbar-row">
+              <span class="hbar-label" style="width:100px; font-size:12.5px;">Batch {{ year }}</span>
+              <div class="hbar-track"><div class="hbar-fill" style="width: {{ (count / max_y * 100) | round(1) }}%; background: linear-gradient(90deg,#6366f1,#818cf8);"></div></div>
+              <span class="hbar-value">{{ count }}</span>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="muted small">No graduation year data yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {# ── Recent applicants table ──────────────────────────────────────── #}
+  <div class="card mb-3">
+    <div class="card-header">
+      <h3>Recent applicants</h3>
+      <span class="chip chip-outline">{{ analytics.recent_applicants | length }} shown</span>
+    </div>
+    {% if analytics.recent_applicants %}
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>College</th>
+              <th>Department</th>
+              <th>Batch</th>
+              <th>Status</th>
+              <th>Applied</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for app in analytics.recent_applicants %}
+              <tr>
+                <td class="row-title">{{ app.name }}</td>
+                <td>{{ app.college }}</td>
+                <td>{{ app.department }}</td>
+                <td>{{ app.graduation_year }}</td>
+                <td>{{ m.badge(app.status) }}</td>
+                <td class="small muted">{{ app.applied_at }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state" style="padding:28px;">
+        <div class="es-icon">📥</div>
+        <h3>No applicants yet</h3>
+        <p>Applicants will appear here once students start applying.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

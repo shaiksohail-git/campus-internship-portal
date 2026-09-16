@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block body_class %}landing{% endblock %}
+{% block title %}{{ app_name }} — Internships & Placements, one portal{% endblock %}
+{% block main_class %}{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <span class="hero-badge">✦ One portal for the entire placement process</span>
+      <h1>Internships &amp; placements, <span class="grad">all in one place.</span></h1>
+      <p class="hero-lead">
+        Verified recruiters publish opportunities. Students apply, track status and
+        attend interviews. Placement officers oversee everything — no more
+        spreadsheets, group chats and missed emails.
+      </p>
+      <div class="hero-cta">
+        {% if not current_user %}
+          <a class="btn btn-primary btn-lg" href="{{ url_for('auth.register_student_page') }}">Register as a student</a>
+          <a class="btn btn-dark btn-lg" href="{{ url_for('auth.register_recruiter_page') }}">Register your company</a>
+        {% else %}
+          <a class="btn btn-primary btn-lg" href="{{ '/' }}">Go to your dashboard</a>
+        {% endif %}
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><b>{{ live_opportunities }}+</b><span>Live opportunities</span></div>
+        <div class="hero-stat"><b>3</b><span>Roles: student · recruiter · admin</span></div>
+        <div class="hero-stat"><b>100%</b><span>Paperless &amp; transparent</span></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-card">
+        <div class="hc-head">
+          <span class="avatar">A</span>
+          <div>
+            <div class="hc-title">Aarav Sharma — B.Tech CSE '26</div>
+            <div class="hc-sub">4 applications · 1 interview · 1 shortlist</div>
+          </div>
+        </div>
+        <div class="hero-rows">
+          <div class="hero-row">
+            <span class="hr-ic">💼</span>
+            <div><div class="hr-t">Software Engineering Intern</div><div class="hr-s">TechCorp Solutions · Bengaluru</div></div>
+            <span class="badge badge-SHORTLISTED hr-status"><span class="dot"></span>Shortlisted</span>
+          </div>
+          <div class="hero-row">
+            <span class="hr-ic">📊</span>
+            <div><div class="hr-t">Data Analyst Trainee</div><div class="hr-s">Innova Labs · Hybrid</div></div>
+            <span class="badge badge-UNDER_REVIEW hr-status"><span class="dot"></span>Under review</span>
+          </div>
+          <div class="hero-row">
+            <span class="hr-ic">🎤</span>
+            <div><div class="hr-t">ML Intern — Interview</div><div class="hr-s">Innova Labs · 18 Aug, 10:30 AM</div></div>
+            <span class="badge badge-INTERVIEW_SCHEDULED hr-status"><span class="dot"></span>Interview</span>
+          </div>
+        </div>
+      </div>
+      <div class="hero-float f1">✅ Application tracked</div>
+      <div class="hero-float f2">🔔 Interview reminder</div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Why CampusPlace</div>
+      <h2>Everything your placement process needs — nothing it doesn't</h2>
+      <p>Built for the way colleges actually run recruitment: controlled, transparent and simple.</p>
+    </div>
+    <div class="grid grid-3">
+      <div class="card card-hover feature-card">
+        <div class="fc-ic">🎓</div>
+        <h3>For students</h3>
+        <p>One profile, one resume, every opportunity. Browse and filter openings, apply in one click, and track your application from “Applied” to “Selected” — plus every scheduled interview.</p>
+      </div>
+      <div class="card card-hover feature-card">
+        <div class="fc-ic">🏢</div>
+        <h3>For recruiters</h3>
+        <p>Get verified by the placement office, publish internships and full-time roles, review applicants with their resumes, shortlist, and schedule interviews — all in one place.</p>
+      </div>
+      <div class="card card-hover feature-card">
+        <div class="fc-ic">🛡️</div>
+        <h3>For placement officers</h3>
+        <p>Approve recruiters and postings before anything goes live, monitor every application and interview, and watch placement analytics update in real time.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">How it works</div>
+      <h2>From registration to offer letter</h2>
+    </div>
+    <div class="steps">
+      <div class="card step"><span class="step-num">01</span><h3>Register &amp; verify</h3><p>Create an account and verify your email. Recruiters are also reviewed by the placement office.</p></div>
+      <div class="card step"><span class="step-num">02</span><h3>Publish &amp; apply</h3><p>Approved recruiters publish opportunities. Students browse, filter and apply with a resume.</p></div>
+      <div class="card step"><span class="step-num">03</span><h3>Review &amp; shortlist</h3><p>Recruiters review applicants and move them through a clear, fixed status flow.</p></div>
+      <div class="card step"><span class="step-num">04</span><h3>Interview &amp; select</h3><p>Schedule interviews, get notified, and celebrate selections — with analytics for the office.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="cta-band">
+      <h2>Ready to connect talent with opportunity?</h2>
+      <p>Join the placement portal that keeps students, recruiters and the placement office perfectly in sync.</p>
+      <div class="mt-3">
+        <a class="btn btn-lg" href="{{ url_for('auth.register_student_page') }}">Create your account</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

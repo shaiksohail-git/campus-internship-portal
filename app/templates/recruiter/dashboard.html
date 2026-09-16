@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% import "macros.html" as m with context %}
+{% block title %}Recruiter dashboard — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">{{ recruiter.company_name }} dashboard</h1>
+      <p class="page-sub">Manage your opportunities, applicants and interviews.</p>
+    </div>
+    {% if recruiter.is_approved %}
+      <a class="btn btn-primary" href="{{ url_for('recruiters.opportunity_new_page') }}">+ New opportunity</a>
+    {% endif %}
+  </div>
+
+  {% if recruiter.approval_status == 'PENDING' %}
+    <div class="recruiter-banner pending">
+      <span class="rb-ic">⏳</span>
+      <div>
+        <strong>Awaiting approval.</strong> Your company registration is being reviewed by the placement office. You'll be able to publish opportunities once approved.
+      </div>
+    </div>
+  {% elif recruiter.approval_status == 'REJECTED' %}
+    <div class="recruiter-banner rejected">
+      <span class="rb-ic">🚫</span>
+      <div>
+        <strong>Registration not approved.</strong> Your company couldn't be verified. Please contact the placement office or update your <a href="{{ url_for('recruiters.profile_page') }}">company profile</a>.
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="grid grid-4 mb-3">
+    {{ m.stat_card(opportunities | length, 'Postings', '💼', 'stat-ic-blue') }}
+    {{ m.stat_card(status_counts.get('APPROVED', 0), 'Live', '🟢', 'stat-ic-green') }}
+    {{ m.stat_card(total_applications, 'Applications', '📥', 'stat-ic-violet') }}
+    {{ m.stat_card(upcoming_interviews | length, 'Upcoming interviews', '🎤', 'stat-ic-cyan') }}
+  </div>
+
+  <div class="grid grid-2" style="grid-template-columns: 1.3fr 1fr;">
+    <div class="card">
+      <div class="card-header"><h3>Recent applications</h3><a class="link-btn small" href="{{ url_for('recruiters.opportunities_page') }}">Manage postings</a></div>
+      {% if recent_applications %}
+        <div class="table-wrap">
+          <table class="table">
+            <tbody>
+              {% for app in recent_applications %}
+                <tr>
+                  <td>
+                    <div class="row-title">{{ app.student.full_name }}</div>
+                    <div class="row-sub">{{ app.opportunity.title }} · {{ app.applied_at | date }}</div>
+                  </td>
+                  <td>{{ m.badge(app.status) }}</td>
+                  <td class="text-right">
+                    <a class="link-btn small" href="{{ url_for('recruiters.applicants_page', opportunity_id=app.opportunity_id) }}">Review</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-state"><div class="es-icon">📥</div><h3>No applications yet</h3><p>Applications from students will appear here once your opportunities go live.</p></div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Upcoming interviews</h3><a class="link-btn small" href="{{ url_for('recruiters.interviews_page') }}">View all</a></div>
+      <div class="card-body" style="display:flex; flex-direction:column; gap:12px;">
+        {% if upcoming_interviews %}
+          {% for iv in upcoming_interviews %}
+            <div style="padding:12px; border:1px solid var(--line-soft); border-radius:12px;">
+              <div class="flex-between">
+                <strong style="color:var(--ink); font-size:13.5px;">{{ iv.application.student.full_name }}</strong>
+                <span class="chip chip-outline" style="font-size:11px;">{{ iv.scheduled_date | date }}</span>
+              </div>
+              <div class="small muted mt-1">{{ iv.application.opportunity.title }} · {{ iv.scheduled_time | time }} · {{ iv.mode | title }}</div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state" style="padding:24px;"><div class="es-icon">🎤</div><h3>Nothing scheduled</h3><p>Interviews you schedule for shortlisted candidates appear here.</p></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if announcements %}
+    <div class="card mt-3">
+      <div class="card-header"><h3>📢 Announcements</h3></div>
+      <div class="card-body" style="display:flex; flex-direction:column; gap:14px;">
+        {% for ann in announcements %}
+          <div style="padding:14px 18px; border:1px solid var(--line-soft); border-radius:12px;">
+            <div class="flex-between">
+              <strong style="color:var(--ink); font-size:14px;">{{ ann.title }}</strong>
+              <span class="small muted">{{ ann.created_at | datetime }}</span>
+            </div>
+            <p class="small mt-1" style="white-space:pre-line; color:var(--ink-2);">{{ ann.body }}</p>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

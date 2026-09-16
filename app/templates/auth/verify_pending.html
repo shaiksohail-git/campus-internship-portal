@@ -1,0 +1,31 @@
+{% extends "auth/auth_base.html" %}
+{% block title %}Verify your email — {{ app_name }}{% endblock %}
+{% block auth_content %}
+<div class="big-ic ic-green" style="background:var(--warning-tint);">📬</div>
+<h1 class="auth-title text-center" style="text-align:center;">Check your inbox</h1>
+<p class="auth-sub" style="text-align:center;">
+  We sent a verification link to <strong>{{ email }}</strong>. Click it to activate
+  your account — until then your dashboard stays locked.
+</p>
+
+<div class="card card-pad mt-2">
+  <p class="small muted mb-2">Didn't receive the email? Check your spam folder, or:</p>
+  <form data-api="/api/v1/auth/resend-verification" method="post" novalidate>
+    <input type="hidden" name="email" value="{{ email }}">
+    <button type="submit" class="btn btn-secondary btn-block">Resend verification email</button>
+  </form>
+</div>
+
+<div class="auth-switch">
+  <button class="link-btn" data-quick-logout>Log out</button> ·
+  <a href="{{ url_for('auth.login_page') }}">Switch account</a>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  document.querySelector("[data-quick-logout]")?.addEventListener("click", async () => {
+    try { await fetch("/api/v1/auth/logout", { method: "POST", headers: { "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content } }); } catch (e) {}
+    window.location.href = "/login";
+  });
+</script>
+{% endblock %}

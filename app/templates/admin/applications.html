@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% import "macros.html" as m with context %}
+{% block title %}Applications — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Applications</h1>
+      <p class="page-sub">Monitor every application across all companies.</p>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <a class="tab {{ 'active' if not current_status }}" href="{{ url_for('admin.applications_page') }}">All</a>
+    {% for s in ['APPLIED', 'UNDER_REVIEW', 'SHORTLISTED', 'INTERVIEW_SCHEDULED', 'SELECTED', 'REJECTED'] %}
+      <a class="tab {{ 'active' if current_status == s }}" href="{{ url_for('admin.applications_page', status=s) }}">{{ status_label(s) }}</a>
+    {% endfor %}
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>Student</th><th>Opportunity</th><th>Company</th><th>Applied</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          {% for app in applications %}
+            <tr>
+              <td>
+                <div class="row-title">{{ app.student.full_name }}</div>
+                <div class="row-sub">{{ app.student.department or '—' }} · {{ app.student.graduation_year or '—' }}</div>
+              </td>
+              <td>{{ app.opportunity.title }}</td>
+              <td>{{ app.opportunity.company_name }}</td>
+              <td class="small">{{ app.applied_at | date }}</td>
+              <td>{{ m.badge(app.status) }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {{ m.pagination(pagination) }}
+  </div>
+</div>
+{% endblock %}

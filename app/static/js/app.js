@@ -714,6 +714,40 @@
     });
   });
 
+  /* ------------------------------ Theme Toggle ------------------------------ */
+
+  const THEME_KEY = "campusplace-theme";
+  const root = document.documentElement;
+
+  function getPreferredTheme() {
+    const stored = localStorage.getItem(THEME_KEY);
+    if (stored === "dark" || stored === "light") return stored;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+
+  function applyTheme(theme) {
+    root.setAttribute("data-theme", theme);
+    localStorage.setItem(THEME_KEY, theme);
+  }
+
+  /* Apply stored / system theme immediately (before paint) */
+  applyTheme(getPreferredTheme());
+
+  const themeToggle = document.getElementById("themeToggle");
+  if (themeToggle) {
+    themeToggle.addEventListener("click", () => {
+      const current = root.getAttribute("data-theme");
+      applyTheme(current === "dark" ? "light" : "dark");
+    });
+  }
+
+  /* Listen for OS theme changes */
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+    if (!localStorage.getItem(THEME_KEY)) {
+      applyTheme(e.matches ? "dark" : "light");
+    }
+  });
+
   /* Expose helpers used by inline scripts in templates */
   window.api = api;
   window.toast = toast;

@@ -244,7 +244,10 @@ def opportunity_detail_page(opportunity_id):
         opportunity=opportunity,
         applications=applications,
         active_tab="opportunities",
-    )@bp.get("/recruiter/opportunities/<int:opportunity_id>/edit")
+    )
+
+
+@bp.get("/recruiter/opportunities/<int:opportunity_id>/edit")
 @recruiter_only
 def opportunity_edit_page(opportunity_id):
     recruiter = _current_recruiter()

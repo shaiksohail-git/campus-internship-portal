@@ -21,6 +21,9 @@ htmlcov/
 # Runtime logs
 server.log
 
+# Local backup of the removed nested repo history
+backend-nested-history-backup.bundle
+
 # OS / editor
 .DS_Store
 Thumbs.db

@@ -9,7 +9,7 @@ import os
 from flask import Flask, g, jsonify, render_template, request, session
 from werkzeug.exceptions import HTTPException
 
-from app.config import config_by_name
+from app.config import FRONTEND_DIR, INSTANCE_DIR, config_by_name
 from app.extensions import db, migrate
 from app.middleware.auth import load_current_user
 from app.middleware.security import init_csrf
@@ -21,7 +21,13 @@ logger = logging.getLogger(__name__)
 
 def create_app(config_name=None):
     config_name = config_name or os.environ.get("APP_ENV", "default")
-    app = Flask(__name__, instance_relative_config=True)
+    app = Flask(
+        __name__,
+        instance_path=INSTANCE_DIR,
+        instance_relative_config=True,
+        template_folder=os.path.join(FRONTEND_DIR, "templates"),
+        static_folder=os.path.join(FRONTEND_DIR, "static"),
+    )
     app.config.from_object(config_by_name.get(config_name, config_by_name["default"]))
     config_by_name["default"].init_app(app)
 

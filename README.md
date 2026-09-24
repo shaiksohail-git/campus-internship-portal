@@ -30,13 +30,17 @@ actions.
 
 ## 🚀 Quick start
 
+All Python code lives in **`backend/`** and all UI assets (Jinja2 templates +
+static CSS/JS) in **`frontend/`** — run everything from `backend/`:
+
 ```bash
-# 1. Create a virtual environment and install dependencies
+# 1. Create a virtual environment (repo root) and install dependencies
 python -m venv .venv
 .venv/Scripts/activate            # Windows (Git Bash: .venv/Scripts/activate)
-pip install -r requirements-dev.txt
+pip install -r backend/requirements-dev.txt
 
 # 2. Apply database migrations
+cd backend
 flask --app run db upgrade
 
 # 3. (Optional) seed the database with demo data
@@ -65,24 +69,34 @@ Open **http://127.0.0.1:5000**.
 
 ## 🗂 Project structure
 
+The backend (Flask API + server-rendered pages) and frontend (templates +
+static assets) are separated into two top-level folders:
+
 ```
-├── app/
-│   ├── __init__.py        # App factory, error handlers, CLI, template globals
-│   ├── config.py          # Environment-driven configuration
-│   ├── cli.py             # `flask seed-demo` command
-│   ├── models/            # SQLAlchemy models + central enums
-│   ├── routes/            # Blueprints: auth, students, recruiters, admin, shared
-│   ├── services/          # Business logic: auth, applications, interviews,
-│   │                      #   notifications, analytics, admin, storage
-│   ├── middleware/        # Session auth, role permissions, CSRF, rate limiting
-│   ├── utils/             # Errors, validators, tokens, email, API helpers
-│   ├── templates/         # Jinja2 pages (landing, auth, role dashboards)
-│   └── static/            # style.css design system + vanilla JS
-├── migrations/            # Alembic migrations
-├── tests/                 # pytest suite + page smoke test
-├── run.py                 # Entry point
-└── requirements.txt
+├── backend/
+│   ├── app/
+│   │   ├── __init__.py    # App factory, error handlers, CLI, template globals
+│   │   ├── config.py      # Environment-driven configuration
+│   │   ├── cli.py         # `flask seed-demo` command
+│   │   ├── models/        # SQLAlchemy models + central enums
+│   │   ├── routes/        # Blueprints: auth, students, recruiters, admin, shared
+│   │   ├── services/      # Business logic: auth, applications, interviews,
+│   │   │                  #   notifications, analytics, admin, storage
+│   │   ├── middleware/    # Session auth, role permissions, CSRF, rate limiting
+│   │   └── utils/         # Errors, validators, tokens, email, API helpers
+│   ├── migrations/        # Alembic migrations
+│   ├── tests/             # pytest suite + page smoke test
+│   ├── instance/          # SQLite DB + uploads (gitignored)
+│   ├── run.py             # Entry point
+│   ├── pytest.ini
+│   └── requirements.txt / requirements-dev.txt
+└── frontend/
+    ├── templates/         # Jinja2 pages (landing, auth, role dashboards)
+    └── static/            # style.css design system + vanilla JS
 ```
+
+The app factory points Flask at `frontend/templates` and `frontend/static`, so
+`url_for('static', ...)` and `render_template` keep working unchanged.
 
 **Architecture rule (from the TRD):** *Routes handle HTTP, services handle
 business logic, models handle database structure.*
@@ -107,9 +121,10 @@ Never commit `.env` (already gitignored).
 ## 🧪 Testing
 
 ```bash
-.venv/Scripts/python -m pytest -q        # 71 tests: auth, permissions,
-                                         # applications, interviews, resumes, admin
-.venv/Scripts/python tests/smoke_pages.py  # renders every page for every role
+cd backend
+python -m pytest -q                        # 71 tests: auth, permissions,
+                                           # applications, interviews, resumes, admin
+python tests/smoke_pages.py                # renders every page for every role
 ```
 
 The critical PRD/TRD guarantees are covered by tests:
@@ -150,6 +165,7 @@ Migrations are managed with **Alembic** (via Flask-Migrate). Schema: `users`,
 `auth_tokens`, `audit_logs`, `dev_mailbox`.
 
 ```bash
+cd backend
 flask --app run db migrate -m "description"   # after model changes
 flask --app run db upgrade
 ```

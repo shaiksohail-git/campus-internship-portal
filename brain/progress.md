@@ -64,26 +64,34 @@ Key constraints & rules enforced at the DB level:
 
 ```
 campus-placement-portal/
-├── app/
-│   ├── __init__.py          # App factory, error handlers, template globals, CLI
-│   ├── config.py            # Env-driven config (SQLite/Postgres, mail, storage, CSRF, rate limits)
-│   ├── cli.py               # `flask seed-demo` + `flask send-weekly-digest`
-│   ├── models/              # 13 models + central enums (roles, statuses, state machine)
-│   ├── routes/              # Blueprints: auth, students, recruiters, admin, shared (pages + REST API)
-│   ├── services/            # auth, application, interview, notification, analytics,
-│   │                        #   analytics_export, recruiter_analytics, digest, admin, storage
-│   ├── middleware/          # session auth, role permissions (+verification gate), CSRF, rate limiting
-│   ├── utils/               # ApiError hierarchy, validators, token hashing, email abstraction, API envelope
+├── backend/
+│   ├── app/
+│   │   ├── __init__.py      # App factory, error handlers, template globals, CLI
+│   │   ├── config.py        # Env-driven config (SQLite/Postgres, mail, storage, CSRF, rate limits)
+│   │   ├── cli.py           # `flask seed-demo` + `flask send-weekly-digest`
+│   │   ├── models/          # 13 models + central enums (roles, statuses, state machine)
+│   │   ├── routes/          # Blueprints: auth, students, recruiters, admin, shared (pages + REST API)
+│   │   ├── services/        # auth, application, interview, notification, analytics,
+│   │   │                    #   analytics_export, recruiter_analytics, digest, admin, storage
+│   │   ├── middleware/      # session auth, role permissions (+verification gate), CSRF, rate limiting
+│   │   └── utils/           # ApiError hierarchy, validators, token hashing, email abstraction, API envelope
+│   ├── migrations/          # Alembic — 2 migrations (initial schema + weekly_digest_enabled)
+│   ├── tests/               # 71 pytest tests + smoke_pages.py
+│   ├── instance/            # SQLite DB + uploads (gitignored)
+│   ├── run.py               # Entry point
+│   ├── pytest.ini           # + pythonpath=. so tests run from anywhere
+│   └── requirements.txt / requirements-dev.txt
+├── frontend/
 │   ├── templates/           # 35+ Jinja2 pages + macros
 │   └── static/              # style.css (design system + dashboard) + app.js (vanilla JS)
-├── migrations/              # Alembic — 2 migrations (initial schema + weekly_digest_enabled)
-├── tests/                   # 71 pytest tests + smoke_pages.py
-├── run.py                   # Entry point
-├── requirements.txt / requirements-dev.txt
 ├── .env.example / .gitignore
-├── dashboard.png            # Design reference image
-└── README.md / progress.md
+└── README.md / brain/progress.md
 ```
+
+The app factory (`backend/app/__init__.py`) points Flask at `frontend/templates`
+and `frontend/static`, so `render_template` / `url_for('static', ...)` are
+unchanged; `instance_path` is passed explicitly so the SQLite DB stays in
+`backend/instance/`.
 
 **Architecture rule (from TRD):** *Routes handle HTTP · Services handle business
 logic · Models handle database structure.*
@@ -226,6 +234,7 @@ logic · Models handle database structure.*
 | 25 | **SQLAlchemy warning** — implicit scalar subquery coercion | Used `.label()` + `.c.cnt` for proper column reference |
 | 26 | **Digest email UnicodeEncodeError** — em-dash/emoji broke cp1252 on Windows | Replaced with ASCII-safe characters |
 | 27 | **SQLite migration error** — NOT NULL column without server_default | Added `server_default=sa.text('1')` |
+| 28 | **Recruiter opportunity pages 500/404** — missing newline merged `return render_template(...)` with the next `@bp.get` decorator (`\`)@bp.get`\`` parsed as matrix multiplication), so the edit route never registered | Restored newline between the routes in `backend/app/routes/recruiters.py` |
 
 ---
 
@@ -258,10 +267,10 @@ logic · Models handle database structure.*
 - **Date-range verification** — analytics page, CSV export, PDF export all respect `start_date`/`end_date` params.
 - **Drill-down verification** — `GET /recruiter/analytics/opportunities/1` returns 200 with full applicant breakdown.
 - Test commands:
-  ```bash
-  .venv/Scripts/python -m pytest -q
-  .venv/Scripts/python tests/smoke_pages.py
-  ```
+```bash
+.venv/Scripts/python -m pytest backend -q
+.venv/Scripts/python backend/tests/smoke_pages.py
+```
 
 ---
 
@@ -269,10 +278,11 @@ logic · Models handle database structure.*
 
 ```bash
 python -m venv .venv
-.venv/Scripts/pip install -r requirements-dev.txt
-.venv/Scripts/flask --app run db upgrade
-.venv/Scripts/flask --app run seed-demo --reset   # optional demo data
-.venv/Scripts/flask --app run run                 # → http://127.0.0.1:5000
+.venv/Scripts/pip install -r backend/requirements-dev.txt
+cd backend
+../.venv/Scripts/flask --app run db upgrade
+../.venv/Scripts/flask --app run seed-demo --reset   # optional demo data
+../.venv/Scripts/flask --app run run                 # → http://127.0.0.1:5000
 ```
 
 **Demo accounts** (after seeding):
@@ -285,7 +295,8 @@ while `MAIL_MODE=console`.
 
 **Send weekly digest manually:**
 ```bash
-.venv/Scripts/flask --app run send-weekly-digest
+cd backend
+../.venv/Scripts/flask --app run send-weekly-digest
 ```
 
 ---

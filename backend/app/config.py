@@ -11,8 +11,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-INSTANCE_DIR = os.path.join(BASE_DIR, "instance")
+# backend/ contains the Python package; frontend/ (templates + static) sits
+# beside it at the repository root, so resolve paths from two levels up.
+BACKEND_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+BASE_DIR = os.path.dirname(BACKEND_DIR)
+FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
+INSTANCE_DIR = os.path.join(BACKEND_DIR, "instance")
 
 
 class Config:

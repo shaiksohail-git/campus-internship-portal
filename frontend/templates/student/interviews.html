@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% import "macros.html" as m with context %}
-{% block title %}My interviews — {{ app_name }}{% endblock %}
+{% block title %}My interviews · {{ app_name }}{% endblock %}
 {% block content %}
 <div class="container">
   <div class="page-header">
     <div>
       <h1 class="page-title">My interviews</h1>
-      <p class="page-sub">Dates, times and meeting details — all in one place.</p>
+      <p class="page-sub">Dates, times and meeting details for every scheduled round.</p>
     </div>
   </div>
 
@@ -24,21 +24,21 @@
               <div>
                 <div style="font-weight:700; color:var(--ink);">{{ iv.application.opportunity.title }}</div>
                 <div class="small" style="color:var(--body);">{{ iv.application.opportunity.company_name }}</div>
-                <div class="small muted mt-1">🕒 {{ iv.scheduled_time | time }}</div>
+                <div class="small muted mt-1">{{ m.icon('clock') }} {{ iv.scheduled_time | time }}</div>
               </div>
             </div>
             {{ m.badge(iv.status) }}
           </div>
           <div class="mt-2">{{ m.interview_meta(iv) }}</div>
           {% if iv.additional_instructions %}
-            <div class="alert alert-info mt-2">📌 {{ iv.additional_instructions }}</div>
+            <div class="alert alert-info mt-2">{{ iv.additional_instructions }}</div>
           {% endif %}
         </div>
       {% endfor %}
     </div>
   {% else %}
     <div class="card mb-3">
-      <div class="empty-state"><div class="es-icon">🎤</div><h3>No upcoming interviews</h3><p>When a recruiter shortlists you and schedules an interview, it will appear here with full details.</p></div>
+      <div class="empty-state"><div class="es-icon">{{ m.icon('mic') }}</div><h3>No upcoming interviews</h3><p>When a recruiter shortlists you and schedules an interview, it will appear here with full details.</p></div>
     </div>
   {% endif %}
 

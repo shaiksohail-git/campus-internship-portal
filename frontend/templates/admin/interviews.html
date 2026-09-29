@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% import "macros.html" as m with context %}
-{% block title %}Interviews — {{ app_name }}{% endblock %}
+{% block title %}Interviews · {{ app_name }}{% endblock %}
 {% block content %}
 <div class="container">
   <div class="page-header">
@@ -21,7 +21,7 @@
             <tr>
               <td>
                 <div class="row-title">{{ iv.application.student.full_name }}</div>
-                <div class="row-sub">{{ iv.application.student.college.name if iv.application.student.college else '—' }}</div>
+                <div class="row-sub">{{ iv.application.student.college.name if iv.application.student.college else 'Not specified' }}</div>
               </td>
               <td>{{ iv.application.opportunity.company_name }}</td>
               <td>{{ iv.application.opportunity.title }}</td>

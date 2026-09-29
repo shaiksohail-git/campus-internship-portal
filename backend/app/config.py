@@ -66,6 +66,21 @@ class Config:
     APP_NAME = "Campus Placement Portal"
     PER_PAGE = 12
 
+    # Date shown in the footer as "Last updated <date>".
+    # Bump this whenever you ship a meaningful change.
+    LAST_UPDATED = os.environ.get("LAST_UPDATED", "2026-09-27")
+
+    # --- Custom domain ---
+    # Your public domain (no protocol, no trailing slash), e.g. placements.mycollege.edu
+    # Used for generated absolute URLs (emails, offer-letter links).
+    PUBLIC_DOMAIN = os.environ.get("PUBLIC_DOMAIN", "")
+    # Comma-separated list of hosts the site may be served from.
+    # Empty = accept any host (fine for localhost dev). Set it in production:
+    #   ALLOWED_HOSTS=placements.mycollege.edu,www.placements.mycollege.edu
+    ALLOWED_HOSTS = [
+        h.strip() for h in os.environ.get("ALLOWED_HOSTS", "").split(",") if h.strip()
+    ]
+
     # Verification / password-reset tokens live for N hours
     TOKEN_TTL_HOURS = int(os.environ.get("TOKEN_TTL_HOURS", "24"))
 

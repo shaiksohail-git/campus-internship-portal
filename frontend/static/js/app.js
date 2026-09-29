@@ -60,6 +60,7 @@
       const msg = payload?.error?.message || "Something went wrong. Please try again.";
       const err = new Error(msg);
       err.code = payload?.error?.code;
+      err.details = payload?.error?.details;
       err.status = res.status;
       throw err;
     }
@@ -102,13 +103,20 @@
     });
   }
 
-  /* ------------------------------ Navbar ------------------------------ */
+  /* ------------------------------ Navbar (mobile menu) ------------------------------ */
 
   const navToggle = document.getElementById("navToggle");
   const navLinks = document.getElementById("navLinks");
   navToggle?.addEventListener("click", () => {
     const open = navLinks.classList.toggle("open");
     navToggle.setAttribute("aria-expanded", String(open));
+  });
+  // close the mobile menu when a link is chosen
+  navLinks?.addEventListener("click", (e) => {
+    if (e.target.closest("a") && navLinks.classList.contains("open")) {
+      navLinks.classList.remove("open");
+      navToggle.setAttribute("aria-expanded", "false");
+    }
   });
 
   /* dropdowns */
@@ -130,16 +138,134 @@
   bindDropdown("notifToggle", "notifDropdown");
   bindDropdown("userMenuToggle", "userDropdown");
 
+  /* ------------------------------ Scroll progress bar ------------------------------ */
+
+  const progressBar = document.getElementById("scrollProgress");
+  function updateScrollProgress() {
+    if (!progressBar) return;
+    const doc = document.documentElement;
+    const max = doc.scrollHeight - window.innerHeight;
+    progressBar.style.transform = `scaleX(${max > 0 ? Math.min(window.scrollY / max, 1) : 0})`;
+  }
+
+  /* ------------------------------ Back to top ------------------------------ */
+
+  const backToTop = document.getElementById("backToTop");
+  function updateBackToTop() {
+    if (!backToTop) return;
+    backToTop.classList.toggle("visible", window.scrollY > 400);
+  }
+
+  window.addEventListener("scroll", () => {
+    updateScrollProgress();
+    updateBackToTop();
+  }, { passive: true });
+  updateScrollProgress();
+  updateBackToTop();
+
+  backToTop?.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  /* ------------------------------ Cookie banner ------------------------------ */
+
+  const COOKIE_KEY = "campusplace-cookie-ok";
+  const cookieBanner = document.getElementById("cookieBanner");
+  if (cookieBanner && !localStorage.getItem(COOKIE_KEY)) {
+    // slide in after a beat so the page settles first
+    setTimeout(() => {
+      cookieBanner.classList.remove("hidden");
+      document.body.classList.add("has-cookie-banner");
+    }, 600);
+  }
+  document.getElementById("cookieAccept")?.addEventListener("click", () => {
+    localStorage.setItem(COOKIE_KEY, "1");
+    cookieBanner.classList.add("hidden");
+    document.body.classList.remove("has-cookie-banner");
+  });
+
+  /* ------------------------------ Copy buttons ------------------------------ */
+
+  async function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+    }
+  }
+
+  document.querySelectorAll("[data-copy], [data-copy-text]").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      let text = "";
+      if (btn.dataset.copyText) {
+        text = btn.dataset.copyText.trim();
+      } else {
+        const source = btn.dataset.copy
+          ? document.querySelector(btn.dataset.copy)
+          : btn.previousElementSibling;
+        text = (source?.textContent || "").trim();
+      }
+      if (!text) return;
+      try {
+        await copyText(text);
+        const original = btn.textContent;
+        btn.textContent = "Copied";
+        btn.classList.add("copied");
+        setTimeout(() => {
+          btn.textContent = original;
+          btn.classList.remove("copied");
+        }, 1600);
+      } catch (err) {
+        toast("Could not copy to clipboard.", "error");
+      }
+    });
+  });
+
+  /* ------------------------------ Password visibility toggle ------------------------------ */
+
+  const EYE = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.8"/></svg>';
+  const EYE_OFF = '<svg class="eye-off" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.5 10.5 0 0 1 12 19.5C5.5 19.5 2 12 2 12a19 19 0 0 1 4.06-5.06M9.9 5.1A10.9 10.9 0 0 1 12 4.5c6.5 0 10 7.5 10 7.5a19 19 0 0 1-2.16 3.19"/><path d="m2 2 20 20"/><path d="M9.88 9.88a2.8 2.8 0 1 0 3.95 4.24"/></svg>';
+
+  document.querySelectorAll("[data-pw-toggle]").forEach((input) => {
+    const wrap = document.createElement("div");
+    wrap.className = "pw-wrap";
+    input.parentNode.insertBefore(wrap, input);
+    wrap.appendChild(input);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "pw-toggle";
+    btn.setAttribute("aria-label", "Show password");
+    btn.innerHTML = EYE + EYE_OFF;
+    wrap.appendChild(btn);
+    btn.addEventListener("click", () => {
+      const show = input.type === "password";
+      input.type = show ? "text" : "password";
+      btn.classList.toggle("visible", show);
+      btn.setAttribute("aria-label", show ? "Hide password" : "Show password");
+    });
+  });
+
   /* ------------------------------ Notifications ------------------------------ */
 
   async function loadNotifications() {
     const list = document.getElementById("notifList");
     if (!list) return;
+    list.innerHTML =
+      '<div class="skeleton-row" style="padding:16px;"><div class="skeleton w-60"></div><div class="skeleton"></div><div class="skeleton w-40"></div></div>' +
+      '<div class="skeleton-row" style="padding:16px;"><div class="skeleton w-60"></div><div class="skeleton"></div><div class="skeleton w-40"></div></div>';
     try {
       const res = await api("/api/v1/notifications?limit=6");
       const items = res.data.notifications || [];
       if (!items.length) {
-        list.innerHTML = '<div class="dropdown-empty">You\'re all caught up 🎉</div>';
+        list.innerHTML = '<div class="dropdown-empty">You are all caught up.</div>';
         return;
       }
       list.innerHTML = items
@@ -222,18 +348,28 @@
     window.location.href = "/";
   });
 
-  /* ------------------------------ Auth forms ------------------------------ */
+  /* ------------------------------ Auth + data forms: loading, success, error ------------------------------ */
+
+  function setBtnLoading(btn, loading, label) {
+    if (!btn) return;
+    if (loading) {
+      btn.dataset.original = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span>' + (label || "Please wait…");
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = btn.dataset.original || label || btn.textContent;
+    }
+  }
 
   document.querySelectorAll("form[data-api]").forEach((form) => {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       clearFieldErrors(form);
+      form.classList.remove("form-success");
+      form.querySelectorAll(".form-success-message, .form-error-message").forEach((el) => el.remove());
       const btn = form.querySelector("[type=submit]");
-      if (btn) {
-        btn.disabled = true;
-        btn.dataset.original = btn.textContent;
-        btn.textContent = "Please wait…";
-      }
+      setBtnLoading(btn, true);
       const payload = {};
       form.querySelectorAll("[name]").forEach((el) => {
         if (el.type === "checkbox") payload[el.name] = el.checked;
@@ -244,23 +380,37 @@
           method: form.dataset.method || "POST",
           json: payload,
         });
+        // success state: banner inside the form + green inputs
+        const okMsg = document.createElement("div");
+        okMsg.className = "form-success-message";
+        okMsg.setAttribute("role", "status");
+        okMsg.textContent = res.message || "Saved.";
+        form.prepend(okMsg);
+        form.classList.add("form-success");
+        form
+          .querySelectorAll(".input")
+          .forEach((el) => el.classList.add("input-success"));
         toast(res.message || "Done!", "success");
         const redirect = form.dataset.redirect || res?.data?.redirect;
         if (redirect) {
-          setTimeout(() => (window.location.href = redirect), 500);
+          setTimeout(() => (window.location.href = redirect), 700);
         } else if (form.dataset.reload === "1") {
-          setTimeout(() => window.location.reload(), 600);
+          setTimeout(() => window.location.reload(), 800);
+        } else {
+          setBtnLoading(btn, false);
         }
       } catch (err) {
+        // error state: banner inside the form + red inputs + field errors
+        const errMsg = document.createElement("div");
+        errMsg.className = "form-error-message";
+        errMsg.setAttribute("role", "alert");
+        errMsg.textContent = err.message || "Something went wrong.";
+        form.prepend(errMsg);
         if (err.code === "VALIDATION_ERROR" && err.status === 422 && err.details) {
           showFieldErrors(form, err.details);
         }
         toast(err.message, "error");
-      } finally {
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = btn.dataset.original || btn.textContent;
-        }
+        setBtnLoading(btn, false);
       }
     });
   });
@@ -282,6 +432,7 @@
   function clearFieldErrors(form) {
     form.querySelectorAll(".field-error").forEach((el) => el.remove());
     form.querySelectorAll(".input-error").forEach((el) => el.classList.remove("input-error"));
+    form.querySelectorAll(".input-success").forEach((el) => el.classList.remove("input-success"));
   }
 
   /* password strength */
@@ -421,7 +572,8 @@
         openModal({ title: "Apply now", body, footer });
         modalFooter.querySelector("[data-cancel]").addEventListener("click", closeModal);
         modalFooter.querySelector("[data-confirm]").addEventListener("click", async (ev) => {
-          ev.target.disabled = true;
+          const confirmBtn = ev.currentTarget;
+          confirmBtn.disabled = true;
           const resumeId = modalBody.querySelector('input[name="resume"]:checked')?.value;
           try {
             const r = await api(`/api/v1/student/opportunities/${oppId}/apply`, {
@@ -433,7 +585,7 @@
             setTimeout(() => (window.location.href = "/student/applications"), 700);
           } catch (err) {
             toast(err.message, "error");
-            ev.target.disabled = false;
+            confirmBtn.disabled = false;
           }
         });
       } catch (err) {
@@ -450,7 +602,7 @@
       const label = btn.textContent.trim();
       confirmDialog({
         title: `Move to "${statusTarget || status}"?`,
-        message: `This will change the application status and notify the student.`,
+        message: "This will change the application status and notify the student.",
         confirmText: label,
         onConfirm: async () => {
           try {
@@ -561,7 +713,8 @@
       openModal({ title: "Schedule interview", body, footer });
       modalFooter.querySelector("[data-cancel]").addEventListener("click", closeModal);
       modalFooter.querySelector("[data-confirm]").addEventListener("click", async (ev) => {
-        ev.target.disabled = true;
+        const confirmBtn = ev.currentTarget;
+        confirmBtn.disabled = true;
         const payload = {
           scheduled_date: modalBody.querySelector("#iv-date").value,
           scheduled_time: modalBody.querySelector("#iv-time").value,
@@ -572,7 +725,7 @@
         };
         if (!payload.scheduled_date || !payload.scheduled_time) {
           toast("Please pick a date and time.", "error");
-          ev.target.disabled = false;
+          confirmBtn.disabled = false;
           return;
         }
         try {
@@ -590,7 +743,7 @@
           setTimeout(() => window.location.reload(), 800);
         } catch (err) {
           toast(err.message, "error");
-          ev.target.disabled = false;
+          confirmBtn.disabled = false;
         }
       });
     });
@@ -671,7 +824,7 @@
           try {
             const res = await api(url, { method: "DELETE" });
             toast(res.message, "success");
-            setTimeout(() => window.location.href = "/recruiter/opportunities", 700);
+            setTimeout(() => (window.location.href = "/recruiter/opportunities"), 700);
           } catch (err) {
             toast(err.message, "error");
           }

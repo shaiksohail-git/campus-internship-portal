@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% import "macros.html" as m with context %}
-{% block title %}{{ 'Edit' if announcement else 'New' }} announcement — {{ app_name }}{% endblock %}
+{% block title %}{{ 'Edit' if announcement else 'New' }} announcement · {{ app_name }}{% endblock %}
 {% block content %}
 <div class="container" style="max-width: 720px;">
-  <a class="link-btn small" href="{{ url_for('admin.announcements_page') }}">← Announcements</a>
+  <a class="link-btn small" href="{{ url_for('admin.announcements_page') }}">&larr; Announcements</a>
   <div class="page-header mt-1">
     <div>
       <h1 class="page-title">{{ 'Edit announcement' if announcement else 'New announcement' }}</h1>

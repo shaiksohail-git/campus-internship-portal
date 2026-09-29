@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% import "macros.html" as m with context %}
-{% block title %}Opportunities — {{ app_name }}{% endblock %}
+{% block title %}Opportunities · {{ app_name }}{% endblock %}
 {% block content %}
 <div class="container">
   <div class="page-header">
@@ -30,7 +30,7 @@
             <tr>
               <td>
                 <div class="row-title">{{ opp.title }}</div>
-                <div class="row-sub">{{ opp.location or '—' }} · {{ opp.work_mode | replace('_', ' ') | title }}</div>
+                <div class="row-sub">{{ opp.location or 'Not specified' }} · {{ opp.work_mode | replace('_', ' ') | title }}</div>
               </td>
               <td>{{ opp.company_name }}</td>
               <td><span class="chip">{{ 'Internship' if opp.type == 'INTERNSHIP' else 'Full-time' }}</span></td>

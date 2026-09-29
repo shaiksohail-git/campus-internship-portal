@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% import "macros.html" as m with context %}
-{% block title %}Admin dashboard — {{ app_name }}{% endblock %}
+{% block title %}Admin dashboard · {{ app_name }}{% endblock %}
 {% block content %}
 <div class="container">
   <div class="page-header">
@@ -12,19 +12,19 @@
   </div>
 
   <div class="grid grid-4 mb-3">
-    {{ m.stat_card(stats.students, 'Students', '🎓', 'stat-ic-blue') }}
-    {{ m.stat_card(stats.recruiters, 'Recruiters', '🏢', 'stat-ic-violet') }}
-    {{ m.stat_card(stats.active_opportunities, 'Live opportunities', '💼', 'stat-ic-green') }}
-    {{ m.stat_card(stats.total_applications, 'Applications', '📥', 'stat-ic-amber') }}
-    {{ m.stat_card(stats.interviews_scheduled, 'Interviews', '🎤', 'stat-ic-cyan') }}
-    {{ m.stat_card(stats.students_selected, 'Students selected', '🏆', 'stat-ic-red') }}
+    {{ m.stat_card(stats.students, 'Students', 'grad-cap', 'stat-ic-blue') }}
+    {{ m.stat_card(stats.recruiters, 'Recruiters', 'building', 'stat-ic-violet') }}
+    {{ m.stat_card(stats.active_opportunities, 'Live opportunities', 'briefcase', 'stat-ic-green') }}
+    {{ m.stat_card(stats.total_applications, 'Applications', 'inbox', 'stat-ic-amber') }}
+    {{ m.stat_card(stats.interviews_scheduled, 'Interviews', 'mic', 'stat-ic-cyan') }}
+    {{ m.stat_card(stats.students_selected, 'Students selected', 'trophy', 'stat-ic-red') }}
     <div class="card stat-card card-hover" style="border-color:#fde68a;">
-      <div class="stat-icon stat-ic-amber">⏳</div>
+      <div class="stat-icon stat-ic-amber">{{ m.icon('clock') }}</div>
       <div class="stat-value">{{ stats.pending_recruiters }}</div>
       <div class="stat-label">Recruiters awaiting approval</div>
     </div>
     <div class="card stat-card card-hover" style="border-color:#fde68a;">
-      <div class="stat-icon stat-ic-amber">📝</div>
+      <div class="stat-icon stat-ic-amber">{{ m.icon('pen') }}</div>
       <div class="stat-value">{{ stats.pending_opportunities }}</div>
       <div class="stat-label">Postings awaiting approval</div>
     </div>
@@ -49,7 +49,7 @@
           </div>
         {% endfor %}
       {% else %}
-        <div class="empty-state" style="padding:32px;"><div class="es-icon">✅</div><h3>All caught up</h3><p>No recruiters waiting for approval.</p></div>
+        <div class="empty-state" style="padding:32px;"><div class="es-icon">{{ m.icon('check') }}</div><h3>All caught up</h3><p>No recruiters waiting for approval.</p></div>
       {% endif %}
     </div>
 
@@ -71,7 +71,7 @@
           </div>
         {% endfor %}
       {% else %}
-        <div class="empty-state" style="padding:32px;"><div class="es-icon">✅</div><h3>All caught up</h3><p>No postings waiting for approval.</p></div>
+        <div class="empty-state" style="padding:32px;"><div class="es-icon">{{ m.icon('check') }}</div><h3>All caught up</h3><p>No postings waiting for approval.</p></div>
       {% endif %}
     </div>
   </div>
@@ -84,7 +84,7 @@
           <tbody>
             {% for app in recent_applications %}
               <tr>
-                <td><div class="row-title">{{ app.student.full_name }}</div><div class="row-sub">{{ app.student.department or '—' }} · {{ app.student.graduation_year or '—' }}</div></td>
+                <td><div class="row-title">{{ app.student.full_name }}</div><div class="row-sub">{{ app.student.department or 'Not specified' }} · {{ app.student.graduation_year or 'Not specified' }}</div></td>
                 <td><div class="row-title">{{ app.opportunity.title }}</div><div class="row-sub">{{ app.opportunity.company_name }}</div></td>
                 <td class="small">{{ app.applied_at | date }}</td>
                 <td>{{ m.badge(app.status) }}</td>
@@ -94,7 +94,7 @@
         </table>
       </div>
     {% else %}
-      <div class="empty-state" style="padding:32px;"><div class="es-icon">📥</div><h3>No applications yet</h3></div>
+      <div class="empty-state" style="padding:32px;"><div class="es-icon">{{ m.icon('inbox') }}</div><h3>No applications yet</h3></div>
     {% endif %}
   </div>
 </div>

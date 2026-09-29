@@ -1,8 +1,8 @@
 {% extends "auth/auth_base.html" %}
-{% block title %}Company registration — {{ app_name }}{% endblock %}
+{% block title %}Company registration · {{ app_name }}{% endblock %}
 {% block auth_content %}
 <h1 class="auth-title">Register your company</h1>
-<p class="auth-sub">Submit your company details — the placement office will review and approve your account.</p>
+<p class="auth-sub">Submit your company details. The placement office will review and approve your account.</p>
 
 <form data-api="/api/v1/auth/register/recruiter" method="post" novalidate>
   <div class="form-grid">
@@ -36,16 +36,16 @@
     </div>
     <div class="form-group">
       <label class="form-label" for="password">Password <span class="req">*</span></label>
-      <input class="input" type="password" id="password" name="password" placeholder="Min. 8 characters" required autocomplete="new-password" data-pw-meter="#pwMeter2">
+      <input class="input" type="password" id="password" name="password" placeholder="Min. 8 characters" required autocomplete="new-password" data-pw-meter="#pwMeter2" data-pw-toggle>
       <div class="pw-meter" id="pwMeter2"><i></i></div>
     </div>
     <div class="form-group">
       <label class="form-label" for="password_confirm">Confirm password <span class="req">*</span></label>
-      <input class="input" type="password" id="password_confirm" name="password_confirm" placeholder="Repeat password" required autocomplete="new-password">
+      <input class="input" type="password" id="password_confirm" name="password_confirm" placeholder="Repeat password" required autocomplete="new-password" data-pw-toggle>
     </div>
   </div>
   <div class="alert alert-info mt-2">
-    💡 After registering you'll verify your email, then the placement office must approve your company before you can publish opportunities.
+    After registering you will verify your email. The placement office must then approve your company before you can publish opportunities.
   </div>
   <button type="submit" class="btn btn-primary btn-block btn-lg mt-3">Create company account</button>
 </form>

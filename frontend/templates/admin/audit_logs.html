@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% import "macros.html" as m with context %}
-{% block title %}Audit log — {{ app_name }}{% endblock %}
+{% block title %}Audit log · {{ app_name }}{% endblock %}
 {% block content %}
 <div class="container">
   <div class="page-header">
@@ -20,7 +20,7 @@
               <tr>
                 <td><span class="chip chip-outline">{{ log.action | replace('_', ' ') | title }}</span></td>
                 <td>{{ log.actor.email if log.actor else 'System' }}</td>
-                <td class="small">{{ log.entity_type or '—' }} #{{ log.entity_id or '—' }}</td>
+                <td class="small">{{ log.entity_type or 'Unspecified' }} #{{ log.entity_id or '' }}</td>
                 <td class="small">{{ log.created_at | datetime }}</td>
               </tr>
             {% endfor %}
@@ -29,7 +29,7 @@
       </div>
       {{ m.pagination(pagination) }}
     {% else %}
-      <div class="empty-state"><div class="es-icon">📜</div><h3>No audit entries yet</h3><p>Admin approval and user-management actions will be logged here.</p></div>
+      <div class="empty-state"><div class="es-icon">{{ m.icon('document') }}</div><h3>No audit entries yet</h3><p>Admin approval and user-management actions will be logged here.</p></div>
     {% endif %}
   </div>
 </div>

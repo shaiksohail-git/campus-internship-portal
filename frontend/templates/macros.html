@@ -1,3 +1,37 @@
+{# SVG icon set. Usage: {{ m.icon('briefcase') }} — stroke style, inherits color. #}
+{% macro icon(name, cls='') -%}
+{%- set paths = {
+  "briefcase": '<g fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="7" width="16" height="13" rx="1.5"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></g>',
+  "users": '<g fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="16.5" cy="9" r="2.6"/><path d="M15.5 15.2c2.8.2 5 2.1 5 4.8"/></g>',
+  "document": '<g fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 2.8h8L19 8v13.2H6z"/><path d="M13.5 3v5H19"/><path d="M9 12h6M9 15.5h6"/></g>',
+  "calendar": '<g fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></g>',
+  "clock": '<g fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></g>',
+  "pin": '<g fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21z"/><circle cx="12" cy="10" r="2.4"/></g>',
+  "link": '<g fill="none" stroke="currentColor" stroke-width="1.7"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.4 1.4"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.4-1.4"/></g>',
+  "download": '<g fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 4v11M7.5 11 12 15.5 16.5 11"/><path d="M5 19.5h14"/></g>',
+  "inbox": '<g fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3.5 13.5 6.5 4h11l3 9.5V20h-17z"/><path d="M3.5 13.5h5l1 2.5h5l1-2.5h5"/></g>',
+  "trophy": '<g fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 5H5.5a2.5 2.5 0 0 0 2.5 5M16 5h2.5a2.5 2.5 0 0 1-2.5 5"/><path d="M12 13v3M8.5 20h7"/></g>',
+  "mic": '<g fill="none" stroke="currentColor" stroke-width="1.7"><rect x="9.2" y="3" width="5.6" height="11" rx="2.8"/><path d="M6 11.5a6 6 0 0 0 12 0M12 17.5V21"/></g>',
+  "grad-cap": '<g fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2.5 9 12 4.5 21.5 9 12 13.5z"/><path d="M6.5 11.2V16c0 1.4 2.5 2.8 5.5 2.8s5.5-1.4 5.5-2.8v-4.8"/></g>',
+  "building": '<g fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4.5" y="3.5" width="15" height="17" rx="1.5"/><path d="M8 7.5h2M14 7.5h2M8 11h2M14 11h2M8 14.5h2M14 14.5h2M10.5 20.5v-4h3v4"/></g>',
+  "shield": '<g fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2.5 20 5.5v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10v-6z"/><path d="m9 11.5 2 2 4-4.5"/></g>',
+  "shield-x": '<g fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2.5 20 5.5v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10v-6z"/><path d="m9.5 9.5 5 5m0-5-5 5"/></g>',
+  "mail": '<g fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="m3.5 7 8.5 6 8.5-6"/></g>',
+  "envelope-open": '<g fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 10.5 12 4l9 6.5V20H3z"/><path d="m3 10.5 9 6 9-6"/></g>',
+  "chat": '<path d="M21 12a8 8 0 0 1-8 8H4l2.3-2.8A8 8 0 1 1 21 12z" fill="none" stroke="currentColor" stroke-width="1.7"/>',
+  "alert": '<g fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3.5 21.5 20h-19z"/><path d="M12 9.5V14M12 16.8v.4"/></g>',
+  "check": '<path d="M4.5 12.5 9.5 17.5 19.5 6.5" fill="none" stroke="currentColor" stroke-width="1.7"/>',
+  "search": '<g fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></g>',
+  "megaphone": '<g fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3.5 10v4a1 1 0 0 0 1 1H7l9 5V4l-9 5H4.5a1 1 0 0 0-1 1z"/><path d="M19 9.5a4 4 0 0 1 0 5"/></g>',
+  "lock": '<g fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></g>',
+  "star": '<path d="m12 3.5 2.6 5.4 5.9.8-4.3 4.2 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.7l5.9-.8z" fill="none" stroke="currentColor" stroke-width="1.7"/>',
+  "chart": '<g fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 4v16h16"/><path d="M8 16v-5M12 16V8M16 16v-3"/></g>',
+  "trend": '<g fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 17 10 11l3.5 3.5L20 8"/><path d="M15 8h5v5"/></g>',
+  "pen": '<g fill="none" stroke="currentColor" stroke-width="1.7"><path d="m4 20 1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19z"/></g>'
+} -%}
+<svg class="ic {{ cls }}" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">{{ paths.get(name, '') | safe }}</svg>
+{%- endmacro %}
+
 {% macro badge(status) -%}
   {% set label = status_label(status) %}
   <span class="badge badge-{{ status }}"><span class="dot"></span>{{ label or status }}</span>
@@ -9,38 +43,38 @@
       {% set qs = request.args.to_dict() %}
       {% set _ = qs.pop('page', None) %}
       {% if p.page > 1 %}
-        <a class="page-link" href="{{ url_for(request.endpoint, page=p.page-1, **qs) }}">‹ Prev</a>
+        <a class="page-link" href="{{ url_for(request.endpoint, page=p.page-1, **qs) }}">&lsaquo; Prev</a>
       {% else %}
-        <span class="page-link disabled">‹ Prev</span>
+        <span class="page-link disabled">&lsaquo; Prev</span>
       {% endif %}
       {% set start = [1, p.page - 2] | max %}
       {% set end = [p.pages, p.page + 2] | min %}
-      {% if start > 1 %}<a class="page-link" href="{{ url_for(request.endpoint, page=1, **qs) }}">1</a>{% if start > 2 %}<span class="page-link disabled">…</span>{% endif %}{% endif %}
+      {% if start > 1 %}<a class="page-link" href="{{ url_for(request.endpoint, page=1, **qs) }}">1</a>{% if start > 2 %}<span class="page-link disabled">&hellip;</span>{% endif %}{% endif %}
       {% for i in range(start, end + 1) %}
         <a class="page-link {{ 'active' if i == p.page }}" href="{{ url_for(request.endpoint, page=i, **qs) }}">{{ i }}</a>
       {% endfor %}
-      {% if end < p.pages %}{% if end < p.pages - 1 %}<span class="page-link disabled">…</span>{% endif %}<a class="page-link" href="{{ url_for(request.endpoint, page=p.pages, **qs) }}">{{ p.pages }}</a>{% endif %}
+      {% if end < p.pages %}{% if end < p.pages - 1 %}<span class="page-link disabled">&hellip;</span>{% endif %}<a class="page-link" href="{{ url_for(request.endpoint, page=p.pages, **qs) }}">{{ p.pages }}</a>{% endif %}
       {% if p.page < p.pages %}
-        <a class="page-link" href="{{ url_for(request.endpoint, page=p.page+1, **qs) }}">Next ›</a>
+        <a class="page-link" href="{{ url_for(request.endpoint, page=p.page+1, **qs) }}">Next &rsaquo;</a>
       {% else %}
-        <span class="page-link disabled">Next ›</span>
+        <span class="page-link disabled">Next &rsaquo;</span>
       {% endif %}
     </nav>
   {% endif %}
 {%- endmacro %}
 
-{% macro empty(title, text, icon='📭') -%}
+{% macro empty(title, text, icon_name='inbox') -%}
   <div class="empty-state">
-    <div class="es-icon">{{ icon }}</div>
+    <div class="es-icon">{{ icon(icon_name) }}</div>
     <h3>{{ title }}</h3>
     <p>{{ text }}</p>
     {{ caller() if caller }}
   </div>
 {%- endmacro %}
 
-{% macro stat_card(value, label, icon, tone='') -%}
+{% macro stat_card(value, label, icon_name, tone='') -%}
   <div class="card stat-card card-hover">
-    <div class="stat-icon {{ tone }}">{{ icon }}</div>
+    <div class="stat-icon {{ tone }}">{{ icon(icon_name) }}</div>
     <div class="stat-value">{{ value }}</div>
     <div class="stat-label">{{ label }}</div>
   </div>
@@ -55,9 +89,9 @@
     <h3 class="opp-title"><a href="{{ url_for('students.opportunity_detail_page', opportunity_id=opp.id) }}">{{ opp.title }}</a></h3>
     <div class="opp-company">{{ opp.company_name }}</div>
     <div class="opp-meta">
-      <span class="meta-pill">📍 {{ opp.location or '—' }}</span>
+      <span class="meta-pill">{{ icon('pin') }} {{ opp.location or 'Not specified' }}</span>
       <span class="meta-pill">{{ opp.work_mode | replace('_', ' ') | title }}</span>
-      <span class="meta-pill">📅 {{ opp.application_deadline | date }}</span>
+      <span class="meta-pill">{{ icon('calendar') }} {{ opp.application_deadline | date }}</span>
     </div>
     <div class="opp-skills">
       {% for s in (opp.required_skills or '').split(',')[:4] %}
@@ -65,7 +99,7 @@
       {% endfor %}
     </div>
     <div class="opp-foot">
-      <span class="opp-salary">{{ opp.salary_or_stipend or 'Stipend TBD' }}</span>
+      <span class="opp-salary">{{ opp.salary_or_stipend or 'Stipend not disclosed' }}</span>
       <a class="btn btn-secondary btn-sm" href="{{ url_for('students.opportunity_detail_page', opportunity_id=opp.id) }}">View details</a>
     </div>
   </article>
@@ -73,17 +107,21 @@
 
 {% macro interview_meta(iv) -%}
   <div class="flex flex-wrap" style="gap:8px;">
-    <span class="meta-pill">🗓 {{ iv.scheduled_date | date }}</span>
-    <span class="meta-pill">🕒 {{ iv.scheduled_time | time }}</span>
+    <span class="meta-pill">{{ icon('calendar') }} {{ iv.scheduled_date | date }}</span>
+    <span class="meta-pill">{{ icon('clock') }} {{ iv.scheduled_time | time }}</span>
     <span class="meta-pill">{{ iv.mode | title }}</span>
-    {% if iv.location %}<span class="meta-pill">📍 {{ iv.location }}</span>{% endif %}
-    {% if iv.meeting_details %}<span class="meta-pill">🔗 {{ iv.meeting_details }}</span>{% endif %}
+    {% if iv.location %}<span class="meta-pill">{{ icon('pin') }} {{ iv.location }}</span>{% endif %}
+    {% if iv.meeting_details %}
+      <span class="meta-pill">{{ icon('link') }} {{ iv.meeting_details }}
+        <button type="button" class="copy-btn" data-copy-text="{{ iv.meeting_details }}" aria-label="Copy meeting details">Copy</button>
+      </span>
+    {% endif %}
   </div>
 {%- endmacro %}
 
-{% macro empty_state(title, text, icon='📭') -%}
+{% macro empty_state(title, text, icon_name='inbox') -%}
   <div class="empty-state">
-    <div class="es-icon">{{ icon }}</div>
+    <div class="es-icon">{{ icon(icon_name) }}</div>
     <h3>{{ title }}</h3>
     <p>{{ text }}</p>
   </div>

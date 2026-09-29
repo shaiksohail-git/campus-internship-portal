@@ -6,7 +6,7 @@ Routes handle HTTP → Services handle business logic → Models handle structur
 import logging
 import os
 
-from flask import Flask, g, jsonify, render_template, request, session
+from flask import Flask, abort, current_app, g, jsonify, render_template, request, session
 from werkzeug.exceptions import HTTPException
 
 from app.config import FRONTEND_DIR, INSTANCE_DIR, config_by_name
@@ -30,6 +30,22 @@ def create_app(config_name=None):
     )
     app.config.from_object(config_by_name.get(config_name, config_by_name["default"]))
     config_by_name["default"].init_app(app)
+
+    # Restrict which Host headers the app answers to (custom domain hardening).
+    # Behind proxies the client host arrives in X-Forwarded-Host; trust the proxy
+    # only for allowed hosts. Empty ALLOWED_HOSTS = accept anything (dev default).
+    @app.before_request
+    def _enforce_allowed_hosts():
+        allowed = current_app.config.get("ALLOWED_HOSTS") or []
+        if not allowed:
+            return None
+        raw_host = (request.host or "").strip()
+        if raw_host.startswith("["):  # IPv6 literal, e.g. [::1]:5000
+            host = raw_host[1:].split("]")[0]
+        else:
+            host = raw_host.split(":")[0]  # strip port
+        if host.strip().lower() not in {h.strip().lower() for h in allowed}:
+            abort(400, description="Invalid host.")
 
     os.makedirs(app.instance_path, exist_ok=True)
 
@@ -59,26 +75,30 @@ def create_app(config_name=None):
             "unread_count": (
                 unread_count(g.current_user.id) if getattr(g, "current_user", None) else 0
             ),
-            "app_name": app.config["APP_NAME"],
-            "status_label": lambda s: ApplicationStatus.LABELS.get(s, s or ""),
         }
+
+    # Stateless template globals. Registered as globals (not context processors)
+    # so they are also visible inside imported macros such as m.badge().
+    app.jinja_env.globals["app_name"] = app.config["APP_NAME"]
+    app.jinja_env.globals["last_updated"] = app.config["LAST_UPDATED"]
+    app.jinja_env.globals["status_label"] = lambda s: ApplicationStatus.LABELS.get(s, s or "")
 
     @app.template_filter("datetime")
     def fmt_datetime(value, fmt="%d %b %Y, %I:%M %p"):
-        return value.strftime(fmt) if value else "—"
+        return value.strftime(fmt) if value else "Not available"
 
     @app.template_filter("date")
     def fmt_date(value, fmt="%d %b %Y"):
-        return value.strftime(fmt) if value else "—"
+        return value.strftime(fmt) if value else "Not available"
 
     @app.template_filter("time")
     def fmt_time(value, fmt="%I:%M %p"):
-        return value.strftime(fmt) if value else "—"
+        return value.strftime(fmt) if value else "Not available"
 
     @app.template_filter("filesize")
     def fmt_filesize(size):
         if size is None:
-            return "—"
+            return "Not available"
         for unit in ("B", "KB", "MB"):
             if size < 1024:
                 return f"{size:.0f} {unit}"

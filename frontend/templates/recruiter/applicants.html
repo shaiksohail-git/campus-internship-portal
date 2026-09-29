@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% import "macros.html" as m with context %}
-{% block title %}Applicants — {{ opportunity.title }} — {{ app_name }}{% endblock %}
+{% block title %}Applicants · {{ opportunity.title }} · {{ app_name }}{% endblock %}
 {% block content %}
 <div class="container">
-  <a class="link-btn small" href="{{ url_for('recruiters.opportunity_detail_page', opportunity_id=opportunity.id) }}">← {{ opportunity.title }}</a>
+  <a class="link-btn small" href="{{ url_for('recruiters.opportunity_detail_page', opportunity_id=opportunity.id) }}">&larr; {{ opportunity.title }}</a>
   <div class="page-header mt-1">
     <div>
       <h1 class="page-title">Applicants</h1>
@@ -25,8 +25,8 @@
               <span class="avatar" style="width:44px; height:44px; font-size:17px;">{{ app.student.full_name[:1] | upper }}</span>
               <div>
                 <div style="font-weight:700; color:var(--ink);">{{ app.student.full_name }}</div>
-                <div class="small muted">{{ app.student.degree or '—' }} · {{ app.student.department or '—' }} · {{ app.student.graduation_year or '—' }}</div>
-                <div class="small muted">{{ app.student.college.name if app.student.college else '—' }} · applied {{ app.applied_at | date }}</div>
+                <div class="small muted">{{ app.student.degree or 'Not specified' }} · {{ app.student.department or 'Not specified' }} · {{ app.student.graduation_year or 'Not specified' }}</div>
+                <div class="small muted">{{ app.student.college.name if app.student.college else 'College not specified' }} · applied {{ app.applied_at | date }}</div>
                 {% if app.student.skills_list %}
                   <div class="opp-skills mt-1">{% for s in app.student.skills_list %}<span class="skill-pill">{{ s }}</span>{% endfor %}</div>
                 {% endif %}
@@ -36,7 +36,7 @@
               {{ m.badge(app.status) }}
               <div class="flex" style="gap:6px;">
                 {% if app.resume %}
-                  <a class="btn btn-ghost btn-sm" href="{{ url_for('shared.api_download_resume', resume_id=app.resume.id) }}">📄 Resume</a>
+                  <a class="btn btn-ghost btn-sm" href="{{ url_for('shared.api_download_resume', resume_id=app.resume.id) }}">{{ m.icon('document') }} Resume</a>
                 {% endif %}
               </div>
             </div>
@@ -49,27 +49,27 @@
                                  'INTERVIEW_SCHEDULED': [('SELECTED', 'Mark selected'), ('REJECTED', 'Reject')]}.get(app.status, []) %}
             {% for s, label in next_steps %}
               {% if s == 'INTERVIEW_SCHEDULED' and app.status == 'SHORTLISTED' %}
-                <button class="btn btn-primary btn-sm" data-schedule-interview="{{ app.id }}">🎤 {{ label }}</button>
+                <button class="btn btn-primary btn-sm" data-schedule-interview="{{ app.id }}">{{ label }}</button>
               {% elif s != 'INTERVIEW_SCHEDULED' %}
                 <button class="btn btn-{{ 'secondary' if s != 'REJECTED' else 'ghost' }} btn-sm" data-status-action="{{ app.id }}" data-status="{{ s }}" data-status-target="{{ label }}">{{ label }}</button>
               {% endif %}
             {% endfor %}              {% if app.status == 'SELECTED' %}
               {% if app.offer_letter and app.offer_letter.sent_at %}
-                <span class="chip" style="background:var(--success-tint); color:var(--success);">✉ Offer letter sent</span>
-                <a class="btn btn-ghost btn-sm" href="/api/v1/recruiter/applications/{{ app.id }}/offer-letter/download">⬇ Download PDF</a>
+                <span class="chip" style="background:var(--success-tint); color:var(--success);">Offer letter sent</span>
+                <a class="btn btn-ghost btn-sm" href="/api/v1/recruiter/applications/{{ app.id }}/offer-letter/download">Download PDF</a>
               {% else %}
-                <button class="btn btn-primary btn-sm" data-send-offer="{{ app.id }}" data-offer-student="{{ app.student.full_name }}" data-offer-title="Offer — {{ opportunity.title }} at {{ opportunity.company_name }}" data-offer-salary="{{ opportunity.salary_or_stipend or '' }}">✉ Send offer letter</button>
+                <button class="btn btn-primary btn-sm" data-send-offer="{{ app.id }}" data-offer-student="{{ app.student.full_name }}" data-offer-title="Offer · {{ opportunity.title }} at {{ opportunity.company_name }}" data-offer-salary="{{ opportunity.salary_or_stipend or '' }}">Send offer letter</button>
               {% endif %}
             {% endif %}
             {% if app.active_interview %}
-              <span class="chip chip-outline">🎤 Interview: {{ app.active_interview.scheduled_date | date }} {{ app.active_interview.scheduled_time | time }}</span>
+              <span class="chip chip-outline">Interview: {{ app.active_interview.scheduled_date | date }} {{ app.active_interview.scheduled_time | time }}</span>
             {% endif %}
           </div>
         </div>
       {% endfor %}
       {{ m.pagination(pagination) }}
     {% else %}
-      <div class="empty-state"><div class="es-icon">📥</div><h3>No applicants</h3><p>Students who apply to this opportunity will appear here.</p></div>
+      <div class="empty-state"><div class="es-icon">{{ m.icon('inbox') }}</div><h3>No applicants</h3><p>Students who apply to this opportunity will appear here.</p></div>
     {% endif %}
   </div>
 </div>
@@ -84,7 +84,7 @@
       <p class="small muted mb-2">Sending offer letter to <strong id="offerStudentName"></strong></p>
       <div class="form-group">
         <label class="form-label">Title</label>
-        <input class="input" id="offerTitle" placeholder="e.g. Full-time Offer — SWE Intern">
+        <input class="input" id="offerTitle" placeholder="e.g. Full-time Offer, SWE Intern">
       </div>
       <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
         <div class="form-group">
@@ -112,7 +112,7 @@ Best regards,
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" id="offerCancel">Cancel</button>
-      <button class="btn btn-primary" id="offerSendBtn">✉ Send offer letter</button>
+      <button class="btn btn-primary" id="offerSendBtn">Send offer letter</button>
     </div>
   </div>
 </div>
@@ -174,7 +174,7 @@ Best regards,
       } catch (err) {
         toast(err.message, "error");
         sendBtn.disabled = false;
-        sendBtn.textContent = "✉ Send offer letter";
+        sendBtn.textContent = "Send offer letter";
       }
     });
   })();

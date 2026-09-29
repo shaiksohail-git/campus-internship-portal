@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 {% import "macros.html" as m with context %}
-{% block title %}{{ opportunity.title }} — {{ app_name }}{% endblock %}
+{% block title %}{{ opportunity.title }} · {{ app_name }}{% endblock %}
 {% block content %}
 <div class="container">
-  <a class="link-btn small" href="{{ url_for('recruiters.opportunities_page') }}">← My opportunities</a>
+  <a class="link-btn small" href="{{ url_for('recruiters.opportunities_page') }}">&larr; My opportunities</a>
 
   <div class="page-header mt-1">
     <div class="flex" style="gap:14px; align-items:center; flex-wrap:wrap;">
       <div class="opp-logo" style="width:50px; height:50px;">{{ opportunity.company_name[:1] | upper }}</div>
       <div>
         <h1 class="page-title">{{ opportunity.title }}</h1>
-        <p class="page-sub">{{ 'Internship' if opportunity.type == 'INTERNSHIP' else 'Full-time' }} · {{ opportunity.location or '—' }} · {{ opportunity.work_mode | replace('_', ' ') | title }}</p>
+        <p class="page-sub">{{ 'Internship' if opportunity.type == 'INTERNSHIP' else 'Full-time' }} · {{ opportunity.location or 'Not specified' }} · {{ opportunity.work_mode | replace('_', ' ') | title }}</p>
       </div>
       {{ m.badge(opportunity.status) }}
     </div>
@@ -35,9 +35,9 @@
   </div>
 
   {% if opportunity.status == 'REJECTED' %}
-    <div class="alert alert-error mb-3">🚫 This opportunity was not approved. Edit it and resubmit for a new review.</div>
+    <div class="alert alert-error mb-3">This opportunity was not approved. Edit it and resubmit for a new review.</div>
   {% elif opportunity.status == 'PENDING_REVIEW' %}
-    <div class="alert alert-warning mb-3">⏳ This posting is awaiting admin review. You'll be notified once a decision is made.</div>
+    <div class="alert alert-warning mb-3">This posting is awaiting admin review. You will be notified once a decision is made.</div>
   {% endif %}
 
   <div class="grid grid-2" style="align-items:start;">
@@ -58,7 +58,7 @@
       {% endif %}
       <div class="divider"></div>
       <div class="grid grid-2" style="gap:10px;">
-        <div><div class="small muted">Salary / stipend</div><strong style="color:var(--success);">{{ opportunity.salary_or_stipend or '—' }}</strong></div>
+        <div><div class="small muted">Salary / stipend</div><strong style="color:var(--success);">{{ opportunity.salary_or_stipend or 'Not disclosed' }}</strong></div>
         <div><div class="small muted">Deadline</div><strong>{{ opportunity.application_deadline | date }}</strong></div>
         <div><div class="small muted">Posted</div><strong>{{ opportunity.published_at | date }}</strong></div>
         <div><div class="small muted">Applications</div><strong>{{ applications | length }}</strong></div>
@@ -75,7 +75,7 @@
                 <tr>
                   <td>
                     <div class="row-title">{{ app.student.full_name }}</div>
-                    <div class="row-sub">{{ app.student.department or '—' }} · {{ app.student.graduation_year or '—' }}</div>
+                    <div class="row-sub">{{ app.student.department or 'Not specified' }} · {{ app.student.graduation_year or 'Not specified' }}</div>
                   </td>
                   <td>{{ m.badge(app.status) }}</td>
                 </tr>
@@ -84,7 +84,7 @@
           </table>
         </div>
       {% else %}
-        <div class="empty-state"><div class="es-icon">📥</div><h3>No applicants yet</h3><p>Once live, applicants will show up here.</p></div>
+        <div class="empty-state"><div class="es-icon">{{ m.icon('inbox') }}</div><h3>No applicants yet</h3><p>Once live, applicants will show up here.</p></div>
       {% endif %}
     </div>
   </div>

@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% import "macros.html" as m with context %}
-{% block title %}{{ analytics.opportunity.title }} analytics — {{ app_name }}{% endblock %}
+{% block title %}{{ analytics.opportunity.title }} analytics · {{ app_name }}{% endblock %}
 {% block content %}
 <div class="container">
-  <a class="link-btn small" href="{{ url_for('recruiters.analytics_page') }}">← Back to analytics</a>
+  <a class="link-btn small" href="{{ url_for('recruiters.analytics_page') }}">&larr; Back to analytics</a>
 
   {# ── Opportunity header ──────────────────────────────────────────── #}
   <div class="page-header mt-1">
@@ -13,8 +13,8 @@
         <h1 class="page-title">{{ analytics.opportunity.title }}</h1>
         <p class="page-sub">
           {{ 'Internship' if analytics.opportunity.type == 'INTERNSHIP' else 'Full-time' }}
-          · {{ analytics.opportunity.location or '—' }}
-          · {{ analytics.opportunity.work_mode | replace('_', ' ') | title if analytics.opportunity.work_mode else '—' }}
+          · {{ analytics.opportunity.location or 'Not specified' }}
+          · {{ analytics.opportunity.work_mode | replace('_', ' ') | title if analytics.opportunity.work_mode else 'Not specified' }}
           · {{ m.badge(analytics.opportunity.status) }}
         </p>
       </div>
@@ -26,25 +26,25 @@
 
   {# ── Stat cards ──────────────────────────────────────────────────── #}
   <div class="grid grid-4 mb-3">
-    {{ m.stat_card(analytics.total, 'Total applicants', '📥', 'stat-ic-amber') }}
-    {{ m.stat_card(analytics.shortlisted, 'Shortlisted', '⭐', 'stat-ic-violet') }}
-    {{ m.stat_card(analytics.selected, 'Selected', '🏆', 'stat-ic-green') }}
-    {{ m.stat_card(analytics.selection_rate ~ '%', 'Selection rate', '📈', 'stat-ic-blue') }}
+    {{ m.stat_card(analytics.total, 'Total applicants', 'inbox', 'stat-ic-amber') }}
+    {{ m.stat_card(analytics.shortlisted, 'Shortlisted', 'star', 'stat-ic-violet') }}
+    {{ m.stat_card(analytics.selected, 'Selected', 'trophy', 'stat-ic-green') }}
+    {{ m.stat_card(analytics.selection_rate ~ '%', 'Selection rate', 'trend', 'stat-ic-blue') }}
   </div>
 
   <div class="grid grid-3 mb-3">
     <div class="card stat-card">
-      <div class="stat-icon stat-ic-cyan">🎤</div>
+      <div class="stat-icon stat-ic-cyan">{{ m.icon('mic') }}</div>
       <div class="stat-value">{{ analytics.interviewed }}</div>
       <div class="stat-label">Interviewed / shortlisted</div>
     </div>
     <div class="card stat-card">
-      <div class="stat-icon stat-ic-red">❌</div>
+      <div class="stat-icon stat-ic-red">{{ m.icon('shield-x') }}</div>
       <div class="stat-value">{{ analytics.rejected }}</div>
       <div class="stat-label">Rejected</div>
     </div>
     <div class="card stat-card">
-      <div class="stat-icon stat-ic-amber">📅</div>
+      <div class="stat-icon stat-ic-amber">{{ m.icon('calendar') }}</div>
       <div class="stat-value">{{ analytics.opportunity.application_deadline | date }}</div>
       <div class="stat-label">Application deadline</div>
     </div>
@@ -79,7 +79,7 @@
           {% for dept, count in analytics.dept_breakdown.items() %}
             <div class="hbar-row">
               <span class="hbar-label" style="width:150px; font-size:12.5px;">{{ dept }}</span>
-              <div class="hbar-track"><div class="hbar-fill" style="width: {{ (count / max_d * 100) | round(1) }}%; background: linear-gradient(90deg,#0d9488,#14b8a6);"></div></div>
+              <div class="hbar-track"><div class="hbar-fill" style="width: {{ (count / max_d * 100) | round(1) }}%; background: #0d9488;"></div></div>
               <span class="hbar-value">{{ count }}</span>
             </div>
           {% endfor %}
@@ -121,7 +121,7 @@
           {% for year, count in analytics.year_distribution.items() %}
             <div class="hbar-row">
               <span class="hbar-label" style="width:100px; font-size:12.5px;">Batch {{ year }}</span>
-              <div class="hbar-track"><div class="hbar-fill" style="width: {{ (count / max_y * 100) | round(1) }}%; background: linear-gradient(90deg,#6366f1,#818cf8);"></div></div>
+              <div class="hbar-track"><div class="hbar-fill" style="width: {{ (count / max_y * 100) | round(1) }}%; background: #6366f1;"></div></div>
               <span class="hbar-value">{{ count }}</span>
             </div>
           {% endfor %}
@@ -167,7 +167,7 @@
       </div>
     {% else %}
       <div class="empty-state" style="padding:28px;">
-        <div class="es-icon">📥</div>
+        <div class="es-icon">{{ m.icon('inbox') }}</div>
         <h3>No applicants yet</h3>
         <p>Applicants will appear here once students start applying.</p>
       </div>

@@ -113,8 +113,33 @@ Copy `.env.example` → `.env` for:
 - `MAIL_MODE` — `console` (dev mailbox) or `smtp` + `SMTP_HOST/PORT/USERNAME/PASSWORD`
 - `STORAGE_MODE` — `local` (default; files under `instance/uploads/resumes`)
 - `SESSION_COOKIE_SECURE` — `true` behind HTTPS
+- `PUBLIC_DOMAIN` — your custom domain, e.g. `placements.mycollege.edu` (no
+  protocol, no trailing slash). Used for absolute links in emails.
+- `ALLOWED_HOSTS` — comma-separated hosts the app may be served from, e.g.
+  `placements.mycollege.edu,www.placements.mycollege.edu`. Always set this in
+  production; it rejects requests with forged Host headers.
+- `LAST_UPDATED` — date shown in the footer as "Last updated <date>".
 
 Never commit `.env` (already gitignored).
+
+### Custom domain setup
+
+1. **Point DNS at your host.** At your domain registrar, add the records your
+   hosting provider gives you, typically:
+   - `A` record: `placements` → the server IP, or
+   - `CNAME` record: `placements` → your app's host (e.g.
+     `your-app.onrender.com`, `your-app.railway.app`),
+   - apex domains usually need `A`/`ALIAS` records instead of `CNAME`.
+2. **Add the domain in your hosting dashboard** so it provisions a TLS
+   certificate (Let's Encrypt is automatic on most platforms).
+3. **Set the env vars** above: `PUBLIC_DOMAIN`, `ALLOWED_HOSTS`, and
+   `SESSION_COOKIE_SECURE=true`.
+4. **Verify:** `curl -I https://placements.mycollege.edu` should return `200`,
+   and `curl -I -H "Host: evil.example" https://<server-ip>/` should be rejected
+   with `400`.
+
+DNS propagation can take from a few minutes to 48 hours depending on the
+registrar.
 
 ---
 
@@ -122,7 +147,7 @@ Never commit `.env` (already gitignored).
 
 ```bash
 cd backend
-python -m pytest -q                        # 71 tests: auth, permissions,
+python -m pytest -q                        # 91 tests: auth, permissions,
                                            # applications, interviews, resumes, admin
 python tests/smoke_pages.py                # renders every page for every role
 ```

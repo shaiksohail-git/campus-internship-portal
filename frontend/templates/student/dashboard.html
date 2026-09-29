@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% import "macros.html" as m with context %}
-{% block title %}Student dashboard — {{ app_name }}{% endblock %}
+{% block title %}Student dashboard · {{ app_name }}{% endblock %}
 {% block content %}
 <div class="container">
   <div class="page-header">
     <div>
-      <h1 class="page-title">Hey, {{ student.full_name.split()[0] }} 👋</h1>
+      <h1 class="page-title">Welcome, {{ student.full_name.split()[0] }}</h1>
       <p class="page-sub">Here's what's happening with your placements today.</p>
     </div>
     <a class="btn btn-primary" href="{{ url_for('students.opportunities_page') }}">Browse opportunities</a>
@@ -13,7 +13,7 @@
 
   {% if not student.has_resume() %}
     <div class="alert alert-warning mb-3">
-      ⚠️ You haven't uploaded a resume yet — you'll need one to apply. <a href="{{ url_for('students.profile_page') }}#resume">Upload now</a>
+      You haven't uploaded a resume yet. You will need one to apply. <a href="{{ url_for('students.profile_page') }}#resume">Upload now</a>
     </div>
   {% endif %}
 
@@ -24,11 +24,11 @@
         <strong style="color:var(--primary);">{{ student.completeness }}%</strong>
       </div>
       <div class="progress"><i style="width: {{ student.completeness }}%"></i></div>
-      <p class="small muted mt-2">{{ 'Perfect — your profile is ready for applications 🎉' if student.completeness == 100 else 'Fill in the rest of your profile to stand out to recruiters.' }}</p>
+      <p class="small muted mt-2">{{ 'Your profile is ready for applications.' if student.completeness == 100 else 'Fill in the rest of your profile to stand out to recruiters.' }}</p>
       <a class="link-btn small mt-1" href="{{ url_for('students.profile_page') }}">Complete profile →</a>
     </div>
-    {{ m.stat_card(my_applications|length if my_applications else 0, 'Applications sent', '📝', 'stat-ic-blue') }}
-    {{ m.stat_card(upcoming_interviews|length, 'Upcoming interviews', '🎤', 'stat-ic-cyan') }}
+    {{ m.stat_card(my_applications|length if my_applications else 0, 'Applications sent', 'pen', 'stat-ic-blue') }}
+    {{ m.stat_card(upcoming_interviews|length, 'Upcoming interviews', 'mic', 'stat-ic-cyan') }}
   </div>
 
   <div class="grid grid-2" style="grid-template-columns: 1.4fr 1fr;">
@@ -51,7 +51,7 @@
           </table>
         </div>
       {% else %}
-        <div class="empty-state"><div class="es-icon">📝</div><h3>No applications yet</h3><p>Find an opportunity that fits you and hit apply.</p><a class="btn btn-secondary btn-sm" href="{{ url_for('students.opportunities_page') }}">Explore opportunities</a></div>
+        <div class="empty-state"><div class="es-icon">{{ m.icon('pen') }}</div><h3>No applications yet</h3><p>Find an opportunity that fits you and hit apply.</p><a class="btn btn-secondary btn-sm" href="{{ url_for('students.opportunities_page') }}">Explore opportunities</a></div>
       {% endif %}
     </div>
 
@@ -69,7 +69,7 @@
             </div>
           {% endfor %}
         {% else %}
-          <div class="empty-state" style="padding:24px;"><div class="es-icon">🎤</div><h3>No upcoming interviews</h3><p>When recruiters shortlist you, interviews appear here.</p></div>
+          <div class="empty-state" style="padding:24px;"><div class="es-icon">{{ m.icon('mic') }}</div><h3>No upcoming interviews</h3><p>When recruiters shortlist you, interviews appear here.</p></div>
         {% endif %}
       </div>
     </div>
@@ -77,7 +77,7 @@
 
   {% if announcements %}
     <div class="card mb-3">
-      <div class="card-header"><h3>📢 Announcements</h3></div>
+      <div class="card-header"><h3>{{ m.icon('megaphone') }} Announcements</h3></div>
       <div class="card-body" style="display:flex; flex-direction:column; gap:14px;">
         {% for ann in announcements %}
           <div style="padding:14px 18px; border:1px solid var(--line-soft); border-radius:12px;">

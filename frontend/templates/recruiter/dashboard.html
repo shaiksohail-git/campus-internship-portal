@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% import "macros.html" as m with context %}
-{% block title %}Recruiter dashboard — {{ app_name }}{% endblock %}
+{% block title %}Recruiter dashboard · {{ app_name }}{% endblock %}
 {% block content %}
 <div class="container">
   <div class="page-header">
@@ -15,14 +15,14 @@
 
   {% if recruiter.approval_status == 'PENDING' %}
     <div class="recruiter-banner pending">
-      <span class="rb-ic">⏳</span>
+      <span class="rb-ic">{{ m.icon('clock') }}</span>
       <div>
         <strong>Awaiting approval.</strong> Your company registration is being reviewed by the placement office. You'll be able to publish opportunities once approved.
       </div>
     </div>
   {% elif recruiter.approval_status == 'REJECTED' %}
     <div class="recruiter-banner rejected">
-      <span class="rb-ic">🚫</span>
+      <span class="rb-ic">{{ m.icon('shield-x') }}</span>
       <div>
         <strong>Registration not approved.</strong> Your company couldn't be verified. Please contact the placement office or update your <a href="{{ url_for('recruiters.profile_page') }}">company profile</a>.
       </div>
@@ -30,10 +30,10 @@
   {% endif %}
 
   <div class="grid grid-4 mb-3">
-    {{ m.stat_card(opportunities | length, 'Postings', '💼', 'stat-ic-blue') }}
-    {{ m.stat_card(status_counts.get('APPROVED', 0), 'Live', '🟢', 'stat-ic-green') }}
-    {{ m.stat_card(total_applications, 'Applications', '📥', 'stat-ic-violet') }}
-    {{ m.stat_card(upcoming_interviews | length, 'Upcoming interviews', '🎤', 'stat-ic-cyan') }}
+    {{ m.stat_card(opportunities | length, 'Postings', 'briefcase', 'stat-ic-blue') }}
+    {{ m.stat_card(status_counts.get('APPROVED', 0), 'Live', 'check', 'stat-ic-green') }}
+    {{ m.stat_card(total_applications, 'Applications', 'inbox', 'stat-ic-violet') }}
+    {{ m.stat_card(upcoming_interviews | length, 'Upcoming interviews', 'mic', 'stat-ic-cyan') }}
   </div>
 
   <div class="grid grid-2" style="grid-template-columns: 1.3fr 1fr;">
@@ -59,7 +59,7 @@
           </table>
         </div>
       {% else %}
-        <div class="empty-state"><div class="es-icon">📥</div><h3>No applications yet</h3><p>Applications from students will appear here once your opportunities go live.</p></div>
+        <div class="empty-state"><div class="es-icon">{{ m.icon('inbox') }}</div><h3>No applications yet</h3><p>Applications from students will appear here once your opportunities go live.</p></div>
       {% endif %}
     </div>
 
@@ -77,7 +77,7 @@
             </div>
           {% endfor %}
         {% else %}
-          <div class="empty-state" style="padding:24px;"><div class="es-icon">🎤</div><h3>Nothing scheduled</h3><p>Interviews you schedule for shortlisted candidates appear here.</p></div>
+          <div class="empty-state" style="padding:24px;"><div class="es-icon">{{ m.icon('mic') }}</div><h3>Nothing scheduled</h3><p>Interviews you schedule for shortlisted candidates appear here.</p></div>
         {% endif %}
       </div>
     </div>
@@ -85,7 +85,7 @@
 
   {% if announcements %}
     <div class="card mt-3">
-      <div class="card-header"><h3>📢 Announcements</h3></div>
+      <div class="card-header"><h3>{{ m.icon('megaphone') }} Announcements</h3></div>
       <div class="card-body" style="display:flex; flex-direction:column; gap:14px;">
         {% for ann in announcements %}
           <div style="padding:14px 18px; border:1px solid var(--line-soft); border-radius:12px;">

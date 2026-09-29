@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% import "macros.html" as m with context %}
-{% block title %}Announcements — {{ app_name }}{% endblock %}
+{% block title %}Announcements · {{ app_name }}{% endblock %}
 {% block content %}
 <div class="container">
   <div class="page-header">
@@ -61,7 +61,7 @@
       {{ m.pagination(pagination) }}
     {% else %}
       <div class="empty-state">
-        <div class="es-icon">📢</div>
+        <div class="es-icon">{{ m.icon('megaphone') }}</div>
         <h3>No announcements yet</h3>
         <p>Publish your first announcement to reach students and recruiters.</p>
         <a class="btn btn-primary btn-sm" href="{{ url_for('admin.announcement_new_page') }}">Create announcement</a>

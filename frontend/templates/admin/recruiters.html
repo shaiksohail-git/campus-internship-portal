@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% import "macros.html" as m with context %}
-{% block title %}Recruiters — {{ app_name }}{% endblock %}
+{% block title %}Recruiters · {{ app_name }}{% endblock %}
 {% block content %}
 <div class="container">
   <div class="page-header">
@@ -31,7 +31,7 @@
                 <div class="row-sub">{{ r.company_email or r.user.email }}</div>
               </td>
               <td>
-                <div class="small">{{ r.contact_person or '—' }}</div>
+                <div class="small">{{ r.contact_person or 'Not specified' }}</div>
                 <div class="row-sub">{{ r.contact_phone or '' }}</div>
               </td>
               <td class="small">{{ r.created_at | date }}</td>

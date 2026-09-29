@@ -1,11 +1,11 @@
 {% extends "auth/auth_base.html" %}
-{% block title %}Verify your email — {{ app_name }}{% endblock %}
+{% block title %}Verify your email · {{ app_name }}{% endblock %}
 {% block auth_content %}
-<div class="big-ic ic-green" style="background:var(--warning-tint);">📬</div>
-<h1 class="auth-title text-center" style="text-align:center;">Check your inbox</h1>
+<div class="big-ic" style="background:var(--warning-tint); color:var(--warning);">{{ m.icon('mail') }}</div>
+<h1 class="auth-title" style="text-align:center;">Check your inbox</h1>
 <p class="auth-sub" style="text-align:center;">
   We sent a verification link to <strong>{{ email }}</strong>. Click it to activate
-  your account — until then your dashboard stays locked.
+  your account. Until then your dashboard stays locked.
 </p>
 
 <div class="card card-pad mt-2">

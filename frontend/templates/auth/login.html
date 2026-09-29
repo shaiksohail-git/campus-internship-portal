@@ -1,7 +1,7 @@
 {% extends "auth/auth_base.html" %}
-{% block title %}Log in — {{ app_name }}{% endblock %}
+{% block title %}Log in · {{ app_name }}{% endblock %}
 {% block auth_content %}
-<h1 class="auth-title">Welcome back 👋</h1>
+<h1 class="auth-title">Welcome back</h1>
 <p class="auth-sub">Log in to your student, recruiter or admin account.</p>
 
 <form data-api="/api/v1/auth/login" method="post" novalidate>
@@ -12,7 +12,7 @@
   </div>
   <div class="form-group mb-1">
     <label class="form-label" for="password">Password</label>
-    <input class="input" type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+    <input class="input" type="password" id="password" name="password" placeholder="Your password" required autocomplete="current-password" data-pw-toggle>
   </div>
   <div class="flex-between mt-1">
     <span></span>

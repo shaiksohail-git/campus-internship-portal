@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 {% import "macros.html" as m with context %}
-{% block title %}Selected applicants — {{ app_name }}{% endblock %}
+{% block title %}Selected applicants · {{ app_name }}{% endblock %}
 {% block content %}
 <div class="container">
   <div class="page-header">
     <div>
       <h1 class="page-title">Selected applicants</h1>
-      <p class="page-sub">Students you've selected across all opportunities. Send offer letters from the applicants page.</p>
+      <p class="page-sub">Students you have selected across all opportunities. Send offer letters from the applicants page.</p>
     </div>
     {% if applications %}
       <div class="flex" style="gap:8px;">
-        <a class="btn btn-ghost btn-sm" href="{{ url_for('recruiters.export_selected_applicants_csv') }}">📄 CSV</a>
-        <a class="btn btn-ghost btn-sm" href="{{ url_for('recruiters.export_selected_applicants_pdf') }}">📄 PDF</a>
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('recruiters.export_selected_applicants_csv') }}">CSV</a>
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('recruiters.export_selected_applicants_pdf') }}">PDF</a>
       </div>
     {% endif %}
   </div>
@@ -74,11 +74,11 @@
                 </td>
                 <td>
                   <div class="row-title">{{ app.opportunity.title }}</div>
-                  <div class="row-sub">{{ 'Internship' if app.opportunity.type == 'INTERNSHIP' else 'Full-time' }} · {{ app.opportunity.location or '—' }}</div>
+                  <div class="row-sub">{{ 'Internship' if app.opportunity.type == 'INTERNSHIP' else 'Full-time' }} · {{ app.opportunity.location or 'Not specified' }}</div>
                 </td>
-                <td class="small">{{ app.student.college.name if app.student.college else '—' }}</td>
-                <td class="small">{{ app.student.department or '—' }}</td>
-                <td class="small">{{ app.student.graduation_year or '—' }}</td>
+                <td class="small">{{ app.student.college.name if app.student.college else 'Not specified' }}</td>
+                <td class="small">{{ app.student.department or 'Not specified' }}</td>
+                <td class="small">{{ app.student.graduation_year or 'Not specified' }}</td>
                 <td class="small">{{ app.updated_at | date }}</td>
                 <td>
                   {% if app.offer_letter and app.offer_letter.sent_at %}
@@ -101,7 +101,7 @@
       {{ m.pagination(pagination) }}
     {% else %}
       <div class="empty-state">
-        <div class="es-icon">🏆</div>
+        <div class="es-icon">{{ m.icon('trophy') }}</div>
         <h3>No selected applicants yet</h3>
         <p>When you mark applicants as "Selected" from the applicants page, they'll appear here.</p>
         <a class="btn btn-primary btn-sm" href="{{ url_for('recruiters.opportunities_page') }}">View opportunities</a>

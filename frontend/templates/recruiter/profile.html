@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Company profile — {{ app_name }}{% endblock %}
+{% block title %}Company profile · {{ app_name }}{% endblock %}
 {% block content %}
 <div class="container">
   <div class="page-header">
@@ -7,7 +7,8 @@
       <h1 class="page-title">Company profile</h1>
       <p class="page-sub">The placement office uses these details to verify your company.</p>
     </div>
-    <span class="chip chip-role">{{ {'PENDING': '⏳ Pending approval', 'APPROVED': '✅ Approved', 'REJECTED': '🚫 Rejected'}[recruiter.approval_status] }}</span>
+    {% import "macros.html" as m %}
+    <span class="chip chip-role">{{ {'PENDING': 'Pending approval', 'APPROVED': 'Approved', 'REJECTED': 'Not approved'}[recruiter.approval_status] }}</span>
   </div>
 
   <div class="card" style="max-width: 760px;">
@@ -47,7 +48,7 @@
 
   {% if recruiter.approved_at %}
     <div class="card card-pad mt-2" style="max-width: 760px; display:flex; gap:10px; align-items:center;">
-      <span style="font-size:20px;">✅</span>
+      <span style="display:inline-flex; color:var(--success);">{{ m.icon('check') }}</span>
       <div class="small">Approved by the placement office on <strong>{{ recruiter.approved_at | date }}</strong>. You can create and publish opportunities.</div>
     </div>
   {% endif %}
@@ -58,8 +59,8 @@
       <form id="digestForm">
         <div class="flex-between" style="padding:8px 0;">
           <div>
-            <div style="font-weight:600; font-size:14px;">📊 Weekly analytics digest</div>
-            <div class="small muted">Receive a weekly email summary of your hiring analytics — applications, applicant colleges, departments, and peer comparison.</div>
+            <div style="font-weight:600; font-size:14px;">Weekly analytics digest</div>
+            <div class="small muted">Receive a weekly email summary of your hiring analytics: applications, applicant colleges, departments, and peer comparison.</div>
           </div>
           <label class="toggle">
             <input type="checkbox" id="digestToggle" {{ 'checked' if recruiter.weekly_digest_enabled }}>

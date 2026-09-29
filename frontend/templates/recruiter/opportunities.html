@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% import "macros.html" as m with context %}
-{% block title %}My opportunities — {{ app_name }}{% endblock %}
+{% block title %}My opportunities · {{ app_name }}{% endblock %}
 {% block content %}
 <div class="container">
   <div class="page-header">
@@ -15,7 +15,7 @@
 
   {% if not recruiter.is_approved %}
     <div class="recruiter-banner {{ 'pending' if recruiter.approval_status == 'PENDING' else 'rejected' }}">
-      <span class="rb-ic">{{ '⏳' if recruiter.approval_status == 'PENDING' else '🚫' }}</span>
+      <span class="rb-ic">{{ m.icon('clock') if recruiter.approval_status == 'PENDING' else m.icon('shield-x') }}</span>
       <div>Your company is {{ 'still under review' if recruiter.approval_status == 'PENDING' else 'not approved' }}. Opportunity publishing unlocks once the placement office approves you.</div>
     </div>
   {% endif %}
@@ -48,7 +48,7 @@
               <tr>
                 <td>
                   <div class="row-title">{{ opp.title }}</div>
-                  <div class="row-sub">{{ opp.location or '—' }} · {{ opp.work_mode | replace('_', ' ') | title }}</div>
+                  <div class="row-sub">{{ opp.location or 'Not specified' }} · {{ opp.work_mode | replace('_', ' ') | title }}</div>
                 </td>
                 <td><span class="chip">{{ 'Internship' if opp.type == 'INTERNSHIP' else 'Full-time' }}</span></td>
                 <td class="small">{{ opp.application_deadline | date }}</td>
@@ -79,7 +79,7 @@
       {{ m.pagination(pagination) }}
     {% else %}
       <div class="empty-state">
-        <div class="es-icon">💼</div>
+        <div class="es-icon">{{ m.icon('briefcase') }}</div>
         <h3>No opportunities yet</h3>
         <p>Create your first internship or full-time posting to start receiving applications.</p>
         {% if recruiter.is_approved %}

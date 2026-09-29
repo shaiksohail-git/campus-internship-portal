@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% import "macros.html" as m with context %}
-{% block title %}Notifications — {{ app_name }}{% endblock %}
+{% block title %}Notifications · {{ app_name }}{% endblock %}
 {% block content %}
 <div class="container">
   <div class="page-header">
     <div>
       <h1 class="page-title">Notifications</h1>
-      <p class="page-sub">Application updates, interview alerts and approval news.</p>
+      <p class="page-sub">Application updates, interview alerts, and approvals.</p>
     </div>
     <button class="btn btn-ghost btn-sm" id="pageMarkAll">Mark all as read</button>
   </div>
@@ -35,7 +35,7 @@
       {{ m.pagination(pagination) }}
     {% else %}
       <div class="empty-state">
-        <div class="es-icon">🔔</div>
+        <div class="es-icon">{{ m.icon('envelope-open') }}</div>
         <h3>No notifications yet</h3>
         <p>Updates about your applications, interviews and approvals will show up here.</p>
       </div>

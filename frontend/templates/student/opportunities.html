@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% import "macros.html" as m with context %}
-{% block title %}Opportunities — {{ app_name }}{% endblock %}
+{% block title %}Opportunities · {{ app_name }}{% endblock %}
 {% block content %}
 <div class="container">
   <div class="page-header">
@@ -45,9 +45,9 @@
           <h3 class="opp-title"><a href="{{ url_for('students.opportunity_detail_page', opportunity_id=opp.id) }}">{{ opp.title }}</a></h3>
           <div class="opp-company">{{ opp.company_name }}</div>
           <div class="opp-meta">
-            <span class="meta-pill">📍 {{ opp.location or '—' }}</span>
+            <span class="meta-pill">{{ m.icon('pin') }} {{ opp.location or 'Not specified' }}</span>
             <span class="meta-pill">{{ opp.work_mode | replace('_', ' ') | title }}</span>
-            <span class="meta-pill">📅 {{ opp.application_deadline | date }}</span>
+            <span class="meta-pill">{{ m.icon('calendar') }} {{ opp.application_deadline | date }}</span>
           </div>
           <div class="opp-skills">
             {% for s in (opp.required_skills or '').split(',')[:4] %}
@@ -55,9 +55,9 @@
             {% endfor %}
           </div>
           <div class="opp-foot">
-            <span class="opp-salary">{{ opp.salary_or_stipend or 'Stipend TBD' }}</span>
+            <span class="opp-salary">{{ opp.salary_or_stipend or 'Stipend not disclosed' }}</span>
             {% if opp.id in applied_ids %}
-              <span class="chip">✓ Applied</span>
+              <span class="chip">Applied</span>
             {% else %}
               <button class="btn btn-primary btn-sm" data-apply="{{ opp.id }}">Apply now</button>
             {% endif %}
@@ -68,7 +68,7 @@
     {{ m.pagination(pagination) }}
   {% else %}
     <div class="card">
-      {% call m.empty('No opportunities found', 'Try adjusting your search or filters — new postings appear as they are approved.', '🔍') %}
+      {% call m.empty('No opportunities found', 'Try adjusting your search or filters. New postings appear as they are approved.', 'search') %}
         <a class="btn btn-secondary btn-sm" href="{{ url_for('students.opportunities_page') }}">Clear filters</a>
       {% endcall %}
     </div>

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% import "macros.html" as m with context %}
-{% block title %}Interviews — {{ app_name }}{% endblock %}
+{% block title %}Interviews · {{ app_name }}{% endblock %}
 {% block content %}
 <div class="container">
   <div class="page-header">
@@ -31,7 +31,7 @@
       {% endfor %}
     </div>
   {% else %}
-    <div class="card mb-3"><div class="empty-state"><div class="es-icon">🎤</div><h3>No upcoming interviews</h3><p>Schedule interviews for shortlisted candidates from the applicants page.</p></div></div>
+    <div class="card mb-3"><div class="empty-state"><div class="es-icon">{{ m.icon('mic') }}</div><h3>No upcoming interviews</h3><p>Schedule interviews for shortlisted candidates from the applicants page.</p></div></div>
   {% endif %}
 
   {% if past %}

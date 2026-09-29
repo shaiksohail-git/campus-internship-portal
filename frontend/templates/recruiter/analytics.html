@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% import "macros.html" as m with context %}
-{% block title %}Analytics — {{ app_name }}{% endblock %}
+{% block title %}Analytics · {{ app_name }}{% endblock %}
 {% block body_class %}dash-body{% endblock %}
 {% block main_class %}dash-main{% endblock %}
 
@@ -39,14 +39,14 @@
   {# ── KPI Cards ────────────────────────────────────────────────────── #}
   <section class="kpi-row">
     {% set kpis = [
-      ('Total Applications', analytics.total_apps, '📥', 'var(--primary)', analytics.trends.applications),
-      ('Students Selected', analytics.selected, '🏆', '#10b981', analytics.trends.selected),
-      ('Selection Rate', analytics.selection_rate ~ '%', '📈', '#8b5cf6', analytics.trends.selection_rate),
-      ('Live Postings', analytics.live_opps, '📋', '#f59e0b', 0),
+      ('Total Applications', analytics.total_apps, 'inbox', 'var(--primary)', analytics.trends.applications),
+      ('Students Selected', analytics.selected, 'trophy', '#10b981', analytics.trends.selected),
+      ('Selection Rate', analytics.selection_rate ~ '%', 'trend', '#8b5cf6', analytics.trends.selection_rate),
+      ('Live Postings', analytics.live_opps, 'document', '#f59e0b', 0),
     ] %}
-    {% for label, value, icon, color, trend in kpis %}
+    {% for label, value, icon_name, color, trend in kpis %}
       <div class="kpi-card">
-        <div class="kpi-icon" style="background: {{ color }}20; color: {{ color }};">{{ icon }}</div>
+        <div class="kpi-icon" style="background: {{ color }}20; color: {{ color }};">{{ m.icon(icon_name) }}</div>
         <div class="kpi-body">
           <div class="kpi-value">{{ value }}</div>
           <div class="kpi-label">{{ label }}</div>
@@ -62,7 +62,7 @@
 
   {# ── Charts Row: Area + Donut ─────────────────────────────────────── #}
   <section class="chart-row">
-    {# ── Area chart — monthly applications ───────────────────────────── #}
+    {# Area chart: monthly applications #}
     <div class="chart-card wide">
       <div class="chart-header">
         <h3>Applications over time</h3>
@@ -111,7 +111,7 @@
       </div>
     </div>
 
-    {# ── Donut chart — selection rate ────────────────────────────────── #}
+    {# Donut chart: selection rate #}
     <div class="chart-card narrow">
       <div class="chart-header">
         <h3>Selection rate</h3>

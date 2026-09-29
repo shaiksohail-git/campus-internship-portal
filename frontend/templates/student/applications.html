@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% import "macros.html" as m with context %}
-{% block title %}My applications — {{ app_name }}{% endblock %}
+{% block title %}My applications · {{ app_name }}{% endblock %}
 {% block content %}
 <div class="container">
   <div class="page-header">
@@ -42,14 +42,14 @@
                       <div class="row-sub">{{ app.active_interview.mode | title }}{% if app.active_interview.meeting_details %} · {{ app.active_interview.meeting_details }}{% endif %}</div>
                     </div>
                   {% else %}
-                    <span class="muted small">—</span>
+                    <span class="muted small">Not scheduled</span>
                   {% endif %}
                 </td>
                 <td class="text-right">
                   <a class="link-btn small" href="{{ url_for('students.opportunity_detail_page', opportunity_id=app.opportunity_id) }}">View opportunity</a>
                   {% if app.offer_letter and app.offer_letter.sent_at %}
-                    · <button class="link-btn small" style="color:var(--success);" data-view-offer="{{ app.id }}">✉ View offer letter</button>
-                    · <a class="link-btn small" style="color:var(--success);" href="/api/v1/student/applications/{{ app.id }}/offer-letter/download">⬇ Download PDF</a>
+                    · <button class="link-btn small" style="color:var(--success);" data-view-offer="{{ app.id }}">View offer letter</button>
+                    · <a class="link-btn small" style="color:var(--success);" href="/api/v1/student/applications/{{ app.id }}/offer-letter/download">Download PDF</a>
                   {% endif %}
                 </td>
               </tr>
@@ -60,7 +60,7 @@
       {{ m.pagination(pagination) }}
     {% else %}
       <div class="empty-state">
-        <div class="es-icon">📝</div>
+        <div class="es-icon">{{ m.icon('pen') }}</div>
         <h3>No applications yet</h3>
         <p>Browse opportunities and submit your first application.</p>
         <a class="btn btn-primary btn-sm" href="{{ url_for('students.opportunities_page') }}">Browse opportunities</a>
@@ -81,9 +81,9 @@
       </div>
       <div class="divider"></div>
       <div class="grid grid-2" style="gap:10px;">
-        <div><div class="small muted">Salary / stipend</div><strong id="offerViewSalary" style="color:var(--success);">—</strong></div>
-        <div><div class="small muted">Joining date</div><strong id="offerViewJoinDate">—</strong></div>
-        <div><div class="small muted">Sent on</div><strong id="offerViewSentAt">—</strong></div>
+        <div><div class="small muted">Salary / stipend</div><strong id="offerViewSalary" style="color:var(--success);">Not provided</strong></div>
+        <div><div class="small muted">Joining date</div><strong id="offerViewJoinDate">Not provided</strong></div>
+        <div><div class="small muted">Sent on</div><strong id="offerViewSentAt">Not provided</strong></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -116,9 +116,9 @@
         const appId = btn.dataset.viewOffer;
         contentEl.textContent = "Loading…";
         titleEl.textContent = "Offer letter";
-        salaryEl.textContent = "—";
-        joinDateEl.textContent = "—";
-        sentAtEl.textContent = "—";
+        salaryEl.textContent = "Not provided";
+        joinDateEl.textContent = "Not provided";
+        sentAtEl.textContent = "Not provided";
         modal.hidden = false;
         document.body.style.overflow = "hidden";
         try {
@@ -126,9 +126,9 @@
           const offer = res.data.offer_letter;
           titleEl.textContent = offer.title || "Offer letter";
           contentEl.textContent = offer.body || "(No content)";
-          salaryEl.textContent = offer.salary_or_stipend || "—";
-          joinDateEl.textContent = offer.joining_date || "—";
-          sentAtEl.textContent = offer.sent_at ? new Date(offer.sent_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+          salaryEl.textContent = offer.salary_or_stipend || "Not provided";
+          joinDateEl.textContent = offer.joining_date || "Not provided";
+          sentAtEl.textContent = offer.sent_at ? new Date(offer.sent_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "Not provided";
         } catch (err) {
           contentEl.textContent = err.message || "Could not load offer letter.";
         }

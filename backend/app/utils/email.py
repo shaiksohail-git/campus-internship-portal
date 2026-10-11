@@ -30,7 +30,6 @@ class EmailService:
         )
         db.session.commit()
         logger.info("[DEV MAIL] To: %s | Subject: %s", recipient, subject)
-        print(f"\n========== [DEV MAILBOX] ==========\nTo: {recipient}\nSubject: {subject}\n{body}\n===================================\n")
         return True
 
     def _send_smtp(self, recipient, subject, body):

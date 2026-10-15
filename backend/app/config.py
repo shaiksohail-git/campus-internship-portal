@@ -16,7 +16,7 @@ load_dotenv()
 BACKEND_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 BASE_DIR = os.path.dirname(BACKEND_DIR)
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
-INSTANCE_DIR = os.path.join(BACKEND_DIR, "instance")
+INSTANCE_DIR = os.environ.get("INSTANCE_DIR") or os.path.join(BACKEND_DIR, "instance")
 
 
 class Config:
@@ -49,7 +49,9 @@ class Config:
     # --- Resume storage ---
     # Storage is abstracted in services.storage. "local" writes under instance/uploads.
     STORAGE_MODE = os.environ.get("STORAGE_MODE", "local")
-    UPLOAD_FOLDER = os.path.join(INSTANCE_DIR, "uploads", "resumes")
+    UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER") or os.path.join(
+        INSTANCE_DIR, "uploads", "resumes"
+    )
     ALLOWED_RESUME_EXTENSIONS = {".pdf", ".doc", ".docx"}
     MAX_RESUME_SIZE = 5 * 1024 * 1024  # 5 MB
     # Max request body size (file uploads) — Flask aborts > this.

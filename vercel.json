@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "main.py": {
+      "excludeFiles": "{brain/**,backend/tests/**,backend-nested-history-backup.bundle,**/__pycache__/**,**/*.pyc,.venv/**,venv/**}"
+    }
+  }
+}

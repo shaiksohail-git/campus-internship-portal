@@ -3,7 +3,7 @@
 > Live project log tracking what was decided, built, fixed and verified.
 > Companion to `README.md` (how to run) — this file documents *how the build went*.
 
-**Status:** ✅ MVP complete · 71/71 tests passing · all pages rendering · server running on `http://127.0.0.1:5000`
+**Status:** ✅ MVP complete · 91/91 tests passing · **Vercel serverless deployment configured + build-verified** · ⏸ waiting on Neon `DATABASE_URL` to push & go live
 
 ---
 
@@ -201,6 +201,17 @@ logic · Models handle database structure.*
 33. **Monthly trend data** — `_monthly_trend()` in analytics service (last 6 months).
 34. **Period-over-period trends** — `_period_trends()` computes deltas for KPI cards.
 
+### Phase 6 — Vercel Serverless Deployment (this session)
+35. **Decisions confirmed with user** — whole app on Vercel (one serverless Flask function), publicly viewable URL (no auth wall), Neon Postgres for the database, real SMTP via Gmail app password.
+36. **Diagnosis** — project `campus-internship-portal-frontend` failed at `vercel build` (`Configured Python entrypoint "main.py" was not found`): root directory pointed at `frontend/` with a FastHTML preset (templates only, no Python app), and SSO deployment protection returned 401 for anonymous visitors.
+37. **Serverless entrypoint** — root `main.py` prepends `backend/` to `sys.path` and exposes `app = create_app()`; Vercel routes every request (including `/static`) through it. Verified: `main.py` + 42 template files + static assets land in the function bundle.
+38. **Dependencies** — root `requirements.txt` inlines `backend/requirements.txt` + `psycopg2-binary>=2.9.10` (Vercel's parser rejects nested `-r` includes); `.python-version` pins 3.12 (Vercel default → guaranteed binary wheels).
+39. **Bundle hygiene** — `vercel.json` `excludeFiles` keeps `brain/`, `backend/tests/`, `backend/instance/`, `.pytest_cache/`, `.env*`, `server.log`, `__pycache__`, venvs and the git-history bundle out of the function; CLI-generated `pyproject.toml`/`uv.lock` are gitignored (they silently override `requirements.txt` if committed).
+40. **Serverless-friendly config** — `INSTANCE_DIR` / `UPLOAD_FOLDER` became env-overridable; Vercel sets `INSTANCE_DIR=/tmp/instance` because the function root FS is read-only.
+41. **Project settings** — framework `flask`, root directory cleared (repo root), default install command, build command `cd backend && python -m flask --app run db upgrade && python -m flask --app run seed-demo` (migrations + demo seed on every production deploy), SSO deployment protection disabled → public URL.
+42. **Environment** — 13 production env vars set (`SECRET_KEY`, `INSTANCE_DIR`, `SESSION_COOKIE_SECURE`, `PUBLIC_DOMAIN`, `STORAGE_MODE`, `MAIL_MODE=smtp` + full Gmail SMTP credentials); `DATABASE_URL` still pending Neon signup.
+43. **Build verification** — full local `vercel build` passes end-to-end (exit 0): deps installed from root `requirements.txt`, entrypoint detected (`flask.func`, runtime `python3.12`), catch-all route `/(.*) → /flask`, exclusions confirmed by file-map inspection.
+
 ---
 
 ## 7. Bugs Found & Fixed
@@ -235,6 +246,10 @@ logic · Models handle database structure.*
 | 26 | **Digest email UnicodeEncodeError** — em-dash/emoji broke cp1252 on Windows | Replaced with ASCII-safe characters |
 | 27 | **SQLite migration error** — NOT NULL column without server_default | Added `server_default=sa.text('1')` |
 | 28 | **Recruiter opportunity pages 500/404** — missing newline merged `return render_template(...)` with the next `@bp.get` decorator (`\`)@bp.get`\`` parsed as matrix multiplication), so the edit route never registered | Restored newline between the routes in `backend/app/routes/recruiters.py` |
+| 29 | Vercel build failed: `Configured Python entrypoint "main.py" was not found` — project root was `frontend/` with a FastHTML preset | Root `main.py` WSGI entrypoint; project framework → `flask`, root directory cleared |
+| 30 | Vercel's requirements parser rejected nested includes: `PYTHON_REQUIREMENTS_PARSE_ERROR` on `-r backend/requirements.txt` | Inlined runtime deps into root `requirements.txt` (kept in sync with `backend/requirements.txt` manually) |
+| 31 | `psycopg2-binary==2.9.10` had no wheel for auto-detected Python 3.14 → source build died on missing `pg_config`; a stale CLI-generated `pyproject.toml`/`uv.lock` pinned `==3.14.*` and overrode `requirements.txt` | `.python-version` → 3.12 (Vercel default, wheels exist), pin relaxed to `>=2.9.10`, generated files gitignored |
+| 32 | Function bundle would have shipped `backend/instance/` (SQLite + test resumes), `.pytest_cache/`, `.env.local` (OIDC token) and `server.log` | Widened `excludeFiles` in `vercel.json`; verified 0 matches in the rebuilt file map |
 
 ---
 
@@ -256,7 +271,7 @@ logic · Models handle database structure.*
 
 ## 9. Verification Summary
 
-- **71/71 pytest tests pass** — auth, permissions/role isolation, applications
+- **91/91 pytest tests pass** — auth, permissions/role isolation, applications
   (duplicates, deadlines, eligibility, state machine), interviews (rules,
   cancellation, conflicts, ownership), resumes (upload validation + download
   authorization), admin (approvals, suspensions, audit, analytics).
@@ -266,6 +281,7 @@ logic · Models handle database structure.*
 - **Digest verification** — toggle (200), test digest email sent to dev mailbox with correct content.
 - **Date-range verification** — analytics page, CSV export, PDF export all respect `start_date`/`end_date` params.
 - **Drill-down verification** — `GET /recruiter/analytics/opportunities/1` returns 200 with full applicant breakdown.
+- **Vercel build verification (this session)** — `vercel build` exits 0 after installing from root `requirements.txt`; produces `flask.func` (`runtime: python3.12`) with `main.py`, 42 template files and static assets included; `brain/`, `backend/tests/`, `backend/instance/`, `.pytest_cache`, `.env*`, `server.log` all confirmed absent from the file map; catch-all route `/(.*) → /flask` present. Local caveat: the CLI resolves *Linux* wheels into the Windows venv, so the build *command* (migrations + seed) was dry-run separately with the system Python — exit 0.
 - Test commands:
 ```bash
 .venv/Scripts/python -m pytest backend -q
@@ -314,12 +330,14 @@ cd backend
 - DOC/DOCX files cannot be previewed inline in browsers — only PDFs render natively.
 - Weekly digest uses plain-text email (no HTML template yet).
 - No background scheduler thread — digest is triggered via CLI command (cron or manual).
+- **Serverless (Vercel):** resume uploads live under `/tmp`, which is ephemeral across function instances — swap `storage_service` to S3/R2 for durable file storage.
+- **Serverless (Vercel):** rate limiter state is per-function-instance (fresh on every cold start), so limits are per-instance rather than global.
 
 ## 12. Suggested Next Steps
 
 1. Run the full demo flow as each role (student applies → recruiter shortlists
    → schedules interview → selects).
-2. Add PostgreSQL + SMTP config and deploy with Gunicorn/Nginx.
+2. **Finish the Vercel deployment (in progress):** create the Neon Postgres project and add `DATABASE_URL` to Vercel, push the two pending commits (`a7fb71b`, `eb91bba`) to trigger the production build, then verify the public URL end-to-end (pages, static, login, SMTP verification email, demo accounts).
 3. Extend tests (e.g., analytics edge cases, CSRF failure paths, rate-limit
    enforcement).
 4. Optional UX additions: interview reminders, resume default selection,

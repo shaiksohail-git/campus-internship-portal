@@ -8,26 +8,79 @@
 ## Table of Contents
 
 1. [Deployment Checklist](#1-deployment-checklist)
-2. [Step-by-Step Deployment](#2-step-by-step-deployment)
-3. [Project Structure — Every File Explained](#3-project-structure--every-file-explained)
-4. [What You Need to Change for Production](#4-what-you-need-to-change-for-production)
-5. [Troubleshooting](#5-troubleshooting)
+2. [Vercel Deployment Status (current)](#2-vercel-deployment-status-current)
+3. [Step-by-Step Deployment](#3-step-by-step-deployment)
+4. [Project Structure — Every File Explained](#4-project-structure--every-file-explained)
+5. [What You Need to Change for Production](#5-what-you-need-to-change-for-production)
+6. [Troubleshooting](#6-troubleshooting)
 
 ---
 
 ## 1. Deployment Checklist
 
-Before deploying, make sure you have:
+Current target: **Vercel (serverless Python)** — chosen by the owner.
+Sections 3–6 remain as the generic Render/Railway/Fly/VPS reference.
 
-- [ ] A hosting provider (Render, Railway, Fly.io, or a VPS like DigitalOcean)
-- [ ] A PostgreSQL database (Neon, Supabase, or your hosting provider's DB)
-- [ ] An SMTP email service (Gmail, SendGrid, Mailgun, etc.)
+- [x] **Hosting: Vercel** — project `campus-internship-portal-frontend`, framework `flask`, repo root as root directory, one serverless function serves the whole app (no Gunicorn/Nginx)
+- [x] **SMTP email service** — Gmail app password stored as Vercel production env vars (`MAIL_MODE=smtp`)
+- [x] **SSL/HTTPS** — automatic on Vercel; `SESSION_COOKIE_SECURE=true`
+- [x] **Public URL** — SSO deployment protection disabled
+- [ ] **PostgreSQL database (Neon free tier)** — ⏸ waiting for the connection string → `vercel env add DATABASE_URL production`
+- [ ] **Push the deployment commits** (`a7fb71b`, `eb91bba`) — triggers the production build (migrations + demo seed)
+- [ ] **Post-deploy verification** — pages, `/static`, register/login, SMTP verification email, demo accounts
 - [ ] A domain name (optional but recommended)
-- [ ] SSL/HTTPS enabled (required for secure cookies)
 
 ---
 
-## 2. Step-by-Step Deployment
+## 2. Vercel Deployment Status (current)
+
+> The whole app runs as **one serverless Flask function on Vercel** — templates,
+> static assets and the REST API are all served from it. This section tracks the
+> live rollout; sections 3–6 are the generic deployment reference.
+
+### Done ✅
+
+- [x] **Diagnosis** — old build failed (`main.py` entrypoint not found: root dir
+  was `frontend/` with a FastHTML preset) and the URL was behind SSO protection (401)
+- [x] **Repo changes (2 commits: `a7fb71b`, `eb91bba`)**
+  - `main.py` — WSGI entrypoint (adds `backend/` to `sys.path`, exposes `app`)
+  - `requirements.txt` (root) — runtime deps inlined + `psycopg2-binary>=2.9.10`
+    (Vercel cannot follow nested `-r` includes — keep in sync with `backend/requirements.txt`)
+  - `.python-version` — pins Python 3.12 (Vercel default, guarantees binary wheels)
+  - `vercel.json` — `excludeFiles` keeps docs/tests/instance/secrets out of the bundle
+  - `config.py` — `INSTANCE_DIR`/`UPLOAD_FOLDER` now env-overridable (`/tmp/instance` on Vercel)
+- [x] **Project settings** — framework `flask`, root directory cleared, build command
+  `cd backend && python -m flask --app run db upgrade && python -m flask --app run seed-demo`
+- [x] **SSO deployment protection disabled** → URL is publicly viewable
+- [x] **Env vars set** — `SECRET_KEY`, `INSTANCE_DIR=/tmp/instance`,
+  `SESSION_COOKIE_SECURE=true`, `PUBLIC_DOMAIN`, `STORAGE_MODE=local`,
+  `MAIL_MODE=smtp` + Gmail SMTP credentials
+- [x] **Verified** — 91/91 tests pass; full local `vercel build` passes (exit 0);
+  bundle inspected (`main.py` + 42 templates + static in; junk/secrets out)
+
+### Remaining ⏸
+
+- [ ] **Neon Postgres** — create a free project at https://console.neon.tech,
+  copy the connection string (prefer the `-pooler` host), then
+  `vercel env add DATABASE_URL production`
+- [ ] **Push both commits** → triggers production build (runs migrations + seeds demo data)
+- [ ] **Verify the live site** — landing page, `/static`, register/login, SMTP
+  verification email, resume flows; confirm the final production alias and fix
+  `PUBLIC_DOMAIN` if it differs
+- [ ] (optional) Custom domain
+
+### Vercel-specific notes
+
+- Demo accounts after the first deploy: `admin@college.edu` / `Admin@123`,
+  `student1@college.edu` / `Student@123`, `techcorp@company.com` / `Recruiter@123`
+- Resume uploads are stored under `/tmp` (ephemeral on serverless) — swap
+  `storage_service` to S3/R2 for durable storage
+- Never commit root `pyproject.toml` / `uv.lock` — the Vercel CLI regenerates
+  them on every build and they are gitignored on purpose
+
+---
+
+## 3. Step-by-Step Deployment
 
 ### Step 1: Prepare Your Code
 
@@ -205,7 +258,7 @@ sudo systemctl start placement-portal
 
 ---
 
-## 3. Project Structure — Every File Explained
+## 4. Project Structure — Every File Explained
 
 ### Root Level Files
 
@@ -223,6 +276,10 @@ sudo systemctl start placement-portal
 | `Product Requirements Document (PRD).md` | **Original requirements.** What the product should do (features, user stories, acceptance criteria). |
 | `Technical Requirements Document (TRD).md` | **Technical specs.** Architecture decisions, tech stack, database schema, API design. |
 | `server.log` | **Runtime logs.** Flask server output (auto-generated, gitignored). |
+| `main.py` | **Vercel entrypoint.** Serverless WSGI entrypoint: adds `backend/` to `sys.path`, exposes `app = create_app()`. Every request (incl. `/static`) is routed here on Vercel. |
+| `requirements.txt` | **Vercel runtime dependencies.** Inlined copy of `backend/requirements.txt` + `psycopg2-binary` (Vercel's builder cannot follow nested `-r` includes — keep in sync manually). |
+| `.python-version` | **Python pin for Vercel/uv builds.** `3.12` — Vercel's default; guarantees matching binary wheels (psycopg2 etc.). |
+| `vercel.json` | **Vercel config.** `functions.main.py.excludeFiles` keeps docs, tests, `instance/`, `.env*` and logs out of the function bundle. |
 
 ---
 
@@ -465,7 +522,7 @@ Middleware runs before/after every request.
 
 ---
 
-## 4. What You Need to Change for Production
+## 5. What You Need to Change for Production
 
 ### CRITICAL — Must Change
 
@@ -498,7 +555,7 @@ Middleware runs before/after every request.
 
 ---
 
-## 5. Troubleshooting
+## 6. Troubleshooting
 
 ### "Application error" on Render/Railway
 - Check build logs for missing dependencies

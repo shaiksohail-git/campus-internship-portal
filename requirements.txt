@@ -1,3 +1,9 @@
 # Vercel installs dependencies from this file at the repository root.
--r backend/requirements.txt
-psycopg2-binary==2.9.10
+# Keep in sync with backend/requirements.txt (Vercel's parser cannot follow
+# nested `-r` includes, so the runtime deps are listed here directly).
+Flask==3.0.3
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.0.7
+python-dotenv==1.0.1
+reportlab>=4.0
+psycopg2-binary>=2.9.10

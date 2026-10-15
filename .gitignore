@@ -33,3 +33,7 @@ Thumbs.db
 
 .vercel
 .env*
+
+# Vercel CLI regenerates these at the repo root on every build from requirements.txt
+/pyproject.toml
+/uv.lock

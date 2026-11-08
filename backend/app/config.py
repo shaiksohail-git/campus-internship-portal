@@ -29,6 +29,15 @@ class Config:
         "DATABASE_URL", "sqlite:///portal.db"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Managed Postgres (Neon on Antideploy) suspends when idle and drops the
+    # connections left in the pool, so the first request after a quiet spell
+    # would hit a dead socket. Pre-ping checks the connection before handing it
+    # out and transparently reconnects; recycle keeps entries younger than the
+    # provider's idle cut-off.
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+        "pool_recycle": 280,
+    }
 
     # --- Sessions ---
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
@@ -37,8 +46,12 @@ class Config:
     SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "false").lower() == "true"
 
     # --- Email ---
-    # MAIL_MODE = "smtp" (real emails) | "console" (dev mailbox + terminal output)
-    MAIL_MODE = os.environ.get("MAIL_MODE", "console")
+    # MAIL_MODE = "smtp" (your SMTP server) | "resend" (hosted relay) |
+    #             "console" (dev mailbox + terminal output)
+    # Unset: use the relay when the host has given us a key, else the dev mailbox.
+    MAIL_MODE = os.environ.get("MAIL_MODE") or (
+        "resend" if os.environ.get("RESEND_API_KEY") else "console"
+    )
     MAIL_FROM = os.environ.get("MAIL_FROM", "Placement Portal <no-reply@campusportal.local>")
     SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
     SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
@@ -47,8 +60,15 @@ class Config:
     SMTP_USE_TLS = os.environ.get("SMTP_USE_TLS", "true").lower() == "true"
 
     # --- Resume storage ---
-    # Storage is abstracted in services.storage. "local" writes under instance/uploads.
-    STORAGE_MODE = os.environ.get("STORAGE_MODE", "local")
+    # Storage is abstracted in services.storage. "local" writes under instance/uploads
+    # (dev only — the container's disk is replaced on every deploy); "s3" reads an
+    # object bucket from AWS_* / S3_* environment variables.
+    # Unset: use the bucket when the host has given us credentials for one.
+    STORAGE_MODE = os.environ.get("STORAGE_MODE") or (
+        "s3"
+        if os.environ.get("AWS_ACCESS_KEY_ID") and os.environ.get("AWS_ENDPOINT_URL_S3")
+        else "local"
+    )
     UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER") or os.path.join(
         INSTANCE_DIR, "uploads", "resumes"
     )

@@ -15,9 +15,39 @@ logger = logging.getLogger(__name__)
 
 class EmailService:
     def send(self, recipient, subject, body):
-        if current_app.config["MAIL_MODE"] == "smtp":
+        mode = current_app.config["MAIL_MODE"]
+        if mode == "resend":
+            return self._send_resend(recipient, subject, body)
+        if mode == "smtp":
             return self._send_smtp(recipient, subject, body)
         return self._send_console(recipient, subject, body)
+
+    def _send_resend(self, recipient, subject, body):
+        """Send through a Resend-compatible relay.
+
+        The package reads RESEND_API_KEY and RESEND_API_URL itself, so a
+        deployment that supplies them needs no further configuration.
+        """
+        import os
+
+        import resend
+
+        from_address = os.environ.get("EMAIL_FROM") or current_app.config["MAIL_FROM"]
+        try:
+            resend.api_key = os.environ["RESEND_API_KEY"]
+            resend.Emails.send(
+                {
+                    "from": from_address,
+                    "to": [recipient],
+                    "subject": subject,
+                    "text": body,
+                }
+            )
+            logger.info("Relay mail sent to %s", recipient)
+            return True
+        except Exception:  # noqa: BLE001 — delivery failure must not break flows
+            logger.exception("Failed to send email to %s", recipient)
+            return False
 
     def _send_console(self, recipient, subject, body):
         """Store into the dev mailbox table and print to the console."""

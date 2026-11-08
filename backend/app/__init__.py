@@ -9,7 +9,7 @@ import os
 from flask import Flask, abort, current_app, g, jsonify, render_template, request, session
 from werkzeug.exceptions import HTTPException
 
-from app.config import FRONTEND_DIR, INSTANCE_DIR, config_by_name
+from app.config import BACKEND_DIR, FRONTEND_DIR, INSTANCE_DIR, config_by_name
 from app.extensions import db, migrate
 from app.middleware.auth import load_current_user
 from app.middleware.security import init_csrf
@@ -50,7 +50,9 @@ def create_app(config_name=None):
     os.makedirs(app.instance_path, exist_ok=True)
 
     db.init_app(app)
-    migrate.init_app(app, db)
+    # An absolute directory, so `flask db upgrade` and the boot-time migration
+    # find backend/migrations whichever directory the process starts in.
+    migrate.init_app(app, db, directory=os.path.join(BACKEND_DIR, "migrations"))
 
     # --- middleware ---
     init_csrf(app)
